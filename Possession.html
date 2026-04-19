@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Football Possession Counter</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif;
+            background-color: #121212; color: white; overflow: hidden;
+            touch-action: none; /* Prevents zooming and scrolling on mobile */
+            user-select: none;
+        }
+        #stats-bar {
+            height: 20%; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; background-color: #222;
+        }
+        #percentages {
+            font-size: 2.5rem; font-weight: bold; margin-bottom: 10px;
+        }
+        #timers { font-size: 1.2rem; color: #aaa; }
+        
+        #touch-areas {
+            display: flex; height: 60%; width: 100%;
+        }
+        .zone {
+            flex: 1; display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.2s;
+            border: 1px solid #333;
+        }
+        #left { background-color: #0b3d91; } /* Blue for Home */
+        #middle { background-color: #444444; } /* Gray for Neutral */
+        #right { background-color: #8b0000; } /* Red for Away */
+        
+        .active-home { background-color: #1e90ff !important; box-shadow: inset 0 0 20px white; }
+        .active-neutral { background-color: #888888 !important; box-shadow: inset 0 0 20px white; }
+        .active-away { background-color: #ff4500 !important; box-shadow: inset 0 0 20px white; }
+
+        #controls {
+            height: 20%; display: flex; justify-content: space-around; align-items: center; background-color: #222;
+        }
+        button {
+            padding: 15px 20px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+            border: none; border-radius: 8px; background-color: #4CAF50; color: white;
+        }
+        button.export { background-color: #ff9800; }
+        button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div id="stats-bar">
+        <div id="percentages">Home: 50% | Away: 50%</div>
+        <div id="timers">Home: 0s | Neutral: 0s | Away: 0s</div>
+    </div>
+
+    <div id="touch-areas">
+        <div id="left" class="zone">HOME</div>
+        <div id="middle" class="zone active-neutral">NEUTRAL</div>
+        <div id="right" class="zone">AWAY</div>
+    </div>
+
+    <div id="controls">
+        <button id="reset-btn" style="background-color: #d32f2f;">Reset</button>
+        <button id="export-text" class="export">Export Text</button>
+        <button id="export-image" class="export">Export Image</button>
+    </div>
+
+    <script>
+        let state = 'neutral'; // 'home', 'away', or 'neutral'
+        let homeMs = 0;
+        let awayMs = 0;
+        let neutralMs = 0;
+        
+        const uiLeft = document.getElementById('left');
+        const uiMiddle = document.getElementById('middle');
+        const uiRight = document.getElementById('right');
+        const uiPerc = document.getElementById('percentages');
+        const uiTimers = document.getElementById('timers');
+
+        // Main Timer Loop (Runs every 100 milliseconds for accuracy)
+        setInterval(() => {
+            if (state === 'home') homeMs += 100;
+            else if (state === 'away') awayMs += 100;
+            else if (state === 'neutral') neutralMs += 100;
+            
+            updateDisplay();
+        }, 100);
+
+        function updateDisplay() {
+            // Calculate total active possession time
+            let totalActive = homeMs + awayMs;
+            let homePerc = 50;
+            let awayPerc = 50;
+
+            if (totalActive > 0) {
+                homePerc = Math.round((homeMs / totalActive) * 100);
+                awayPerc = Math.round((awayMs / totalActive) * 100);
+            }
+
+            uiPerc.innerText = `Home: ${homePerc}% | Away: ${awayPerc}%`;
+            uiTimers.innerText = `Home: ${Math.floor(homeMs/1000)}s | Neutral: ${Math.floor(neutralMs/1000)}s | Away: ${Math.floor(awayMs/1000)}s`;
+        }
+
+        // Touch / Click Events
+        function setState(newState) {
+            state = newState;
+            uiLeft.classList.remove('active-home');
+            uiMiddle.classList.remove('active-neutral');
+            uiRight.classList.remove('active-away');
+
+            if (state === 'home') uiLeft.classList.add('active-home');
+            else if (state === 'neutral') uiMiddle.classList.add('active-neutral');
+            else if (state === 'away') uiRight.classList.add('active-away');
+        }
+
+        // Add both touch and mouse support
+        uiLeft.addEventListener('mousedown', () => setState('home'));
+        uiLeft.addEventListener('touchstart', (e) => { e.preventDefault(); setState('home'); });
+        
+        uiMiddle.addEventListener('mousedown', () => setState('neutral'));
+        uiMiddle.addEventListener('touchstart', (e) => { e.preventDefault(); setState('neutral'); });
+        
+        uiRight.addEventListener('mousedown', () => setState('away'));
+        uiRight.addEventListener('touchstart', (e) => { e.preventDefault(); setState('away'); });
+
+        // Reset Button
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            if(confirm("Are you sure you want to reset the stats?")) {
+                homeMs = 0; awayMs = 0; neutralMs = 0;
+                setState('neutral');
+                updateDisplay();
+            }
+        });
+
+        // Export as Text
+        document.getElementById('export-text').addEventListener('click', () => {
+            let totalActive = homeMs + awayMs;
+            let homePerc = totalActive > 0 ? Math.round((homeMs / totalActive) * 100) : 0;
+            let awayPerc = totalActive > 0 ? Math.round((awayMs / totalActive) * 100) : 0;
+
+            let textData = `FOOTBALL POSSESSION STATS\n`;
+            textData += `-------------------------\n`;
+            textData += `Home Possession: ${homePerc}%\n`;
+            textData += `Away Possession: ${awayPerc}%\n\n`;
+            textData += `Time on ball (Home): ${Math.floor(homeMs/1000)} seconds\n`;
+            textData += `Time on ball (Away): ${Math.floor(awayMs/1000)} seconds\n`;
+            textData += `Neutral/Dead ball time: ${Math.floor(neutralMs/1000)} seconds\n`;
+
+            const blob = new Blob([textData], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'possession_stats.txt';
+            link.click();
+        });
+
+        // Export as Image (Creates an image tag behind the scenes and downloads it)
+        document.getElementById('export-image').addEventListener('click', () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 400;
+            const ctx = canvas.getContext('2d');
+
+            let totalActive = homeMs + awayMs;
+            let homePerc = totalActive > 0 ? Math.round((homeMs / totalActive) * 100) : 50;
+            let awayPerc = totalActive > 0 ? Math.round((awayMs / totalActive) * 100) : 50;
+
+            // Background
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, 600, 400);
+
+            // Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('MATCH POSSESSION STATS', 300, 60);
+
+            // Possession Bar
+            ctx.fillStyle = '#1e90ff'; // Home Blue
+            ctx.fillRect(50, 150, (homePerc/100) * 500, 50);
+            ctx.fillStyle = '#ff4500'; // Away Red
+            ctx.fillRect(50 + ((homePerc/100) * 500), 150, (awayPerc/100) * 500, 50);
+
+            // Percentages Text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${homePerc}%`, 60, 140);
+            ctx.textAlign = 'right';
+            ctx.fillText(`${awayPerc}%`, 540, 140);
+
+            // Labels
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Home Team Time: ${Math.floor(homeMs/1000)}s`, 50, 250);
+            ctx.textAlign = 'right';
+            ctx.fillText(`Away Team Time: ${Math.floor(awayMs/1000)}s`, 550, 250);
+            
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#aaaaaa';
+            ctx.fillText(`Neutral / Out of Play: ${Math.floor(neutralMs/1000)}s`, 300, 320);
+
+            // Download Image
+            const link = document.createElement('a');
+            link.download = 'possession_graphic.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    </script>
+</body>
+</html>
