@@ -20,7 +20,7 @@
         .stats-grid { display: flex; justify-content: space-between; gap: 25px; margin-top:20px; }
         .team-column { flex: 1; background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
         .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd; font-size: 18px; flex-wrap:wrap; gap:10px; }
-        .stat-controls { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+        .stat-controls { display:flex; align-items:center; gap:5px; }
         .stat-controls button { padding: 5px 12px; font-size: 18px; background: #34495e; color: #fff; border: none; cursor: pointer; border-radius: 4px; }
         .stat-value { font-weight: bold; font-size: 20px; min-width: 30px; text-align: center; display: inline-block; }
         .possession-control input { width: 60px; padding: 5px; text-align: center; font-weight: bold; font-size: 18px; border: 1px solid #ccc; border-radius: 4px; }
@@ -78,10 +78,10 @@
 
         <div id="export-controls" style="display:none; margin-top:20px; flex-wrap:wrap; gap:10px; justify-content:center; background:#ecf0f1; padding:15px; border-radius:8px; border:1px solid #bdc3c7;">
             <h4 style="width:100%; margin:0 0 10px 0; text-align:center;">Generate Graphics</h4>
-            <button onclick="exportImage('HALF TIME RESULT')" id="btn-export-ht" style="background:#3498db; flex:1; display:none; min-width:120px;">📥 HT Graphic</button>
-            <button onclick="exportImage('FULL TIME RESULT')" id="btn-export-ft" style="background:#3498db; flex:1; display:none; min-width:120px;">📥 FT Graphic</button>
-            <button onclick="exportImage('EXTRA TIME RESULT')" id="btn-export-et" style="background:#3498db; flex:1; display:none; min-width:120px;">📥 ET Graphic</button>
-            <button onclick="exportImage('FINAL RESULT')" id="btn-export-final" style="background:#3498db; flex:1; display:none; min-width:120px;">📥 Final Graphic</button>
+            <button onclick="exportImage('HALF TIME RESULT')" id="btn-export-ht" style="background:#3498db; flex:1; display:none;">📥 HT Graphic</button>
+            <button onclick="exportImage('FULL TIME RESULT')" id="btn-export-ft" style="background:#3498db; flex:1; display:none;">📥 FT Graphic</button>
+            <button onclick="exportImage('EXTRA TIME RESULT')" id="btn-export-et" style="background:#3498db; flex:1; display:none;">📥 ET Graphic</button>
+            <button onclick="exportImage('FINAL RESULT')" id="btn-export-final" style="background:#3498db; flex:1; display:none;">📥 Final Graphic</button>
         </div>
 
         <div id="penalties-ui" style="display:none; background:#34495e; padding:15px; margin-top:20px; border-radius:8px; justify-content:center; gap:30px; align-items:center; color:#fff;">
@@ -112,12 +112,10 @@
             <h2 id="ev-title" style="margin-top:0;">Record Event</h2>
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Player</label>
             <select id="ev-player"></select>
-            
             <div id="ev-assist-container" style="display:none;">
                 <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Assist By (Optional)</label>
                 <select id="ev-assist"></select>
             </div>
-            
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label>
             <input type="text" id="ev-min" placeholder="Minute (e.g. 45)">
             <button onclick="saveEvent()">Save Event</button>
@@ -148,7 +146,7 @@
                 <div style="flex:1;"><h3 id="le-teamB" style="color:var(--primary); border-bottom:2px solid #ccc;">Team B</h3><div id="le-listB"></div></div>
             </div>
             <button onclick="saveLineups()" style="margin-top:20px;">Save Lineups to Database</button>
-            <button style="background:#555;" onclick="document.getElementById('lineup-modal').style.display='none'">Cancel</button>
+            <button style="background:#555; margin-top:5px;" onclick="document.getElementById('lineup-modal').style.display='none'">Cancel</button>
         </div>
     </div>
 
@@ -248,7 +246,7 @@
 
         window.saveLineups = async () => {
             const getNewArrays = (team) => {
-                let fullRoster =[...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
+                let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
                 let starts = []; let subs =[];
                 fullRoster.forEach((p, i) => { if(document.getElementById(`le-${team}-${i}`).value === 'Starter') starts.push(p); else subs.push(p); });
                 return { starters: starts, subs: subs };
@@ -292,6 +290,7 @@
         // --- CLOCK & PHASE ENGINE ---
         window.toggleClock = async () => {
             const btn = document.getElementById('clock-toggle-btn');
+            
             if(matchData.status === 'Pending') { 
                 matchData.status = '1H'; 
                 document.getElementById('match-phase-badge').innerText='1H'; 
@@ -326,7 +325,6 @@
                 case '2H':
                     if(!confirm("End the 2nd Half?")) return;
                     matchData.status = 'FT'; matchSeconds = 5400; 
-                    // NO EXTRA TIME IF ONE TEAM IS WINNING
                     if(isKnockout && matchData.scoreA === matchData.scoreB) { btn.innerText = "Start Extra Time"; document.getElementById('clock-controls').style.display='flex'; }
                     else { triggerEndMatch(); return; }
                     break;
@@ -353,6 +351,21 @@
         }
 
         async function triggerEndMatch() {
+            // Auto Advance Bracket if Official
+            if(matchData.isOfficial && matchData.bracketNode) {
+                let winnerId = null;
+                if(matchData.scoreA > matchData.scoreB) winnerId = matchData.teamA.id;
+                else if(matchData.scoreB > matchData.scoreA) winnerId = matchData.teamB.id;
+                else if(matchData.penalties.A > matchData.penalties.B) winnerId = matchData.teamA.id;
+                else if(matchData.penalties.B > matchData.penalties.A) winnerId = matchData.teamB.id;
+
+                if(winnerId) {
+                    let tDoc = await getDoc(doc(db, "tournaments", matchData.tournamentId));
+                    // Basic Auto progression if we ever implement full nested tree in DB. 
+                    // For now, the user can just schedule the next node visually in the Bracket UI.
+                }
+            }
+
             const sel = document.getElementById('motm-select'); sel.innerHTML = '';
             const optA = document.createElement('optgroup'); optA.label = matchData.teamA.name; matchData.lineupA.starters.forEach(p=>{if(p.name) optA.appendChild(new Option(p.name, p.name))}); sel.appendChild(optA);
             const optB = document.createElement('optgroup'); optB.label = matchData.teamB.name; matchData.lineupB.starters.forEach(p=>{if(p.name) optB.appendChild(new Option(p.name, p.name))}); sel.appendChild(optB);
@@ -380,18 +393,15 @@
 
         window.updateStatDisplays = () => {['A','B'].forEach(team => {
                 document.getElementById(`score${team}`).innerText = matchData[`score${team}`];
-                
                 let rC = matchData.stats[team].reds.length;
                 let rHtml = Array(rC).fill(`<div class="red-card-icon"></div>`).join('');
                 document.getElementById(`score${team}-name`).innerHTML = team==='A' ? `${matchData.teamA.name} ${rHtml}` : `${rHtml} ${matchData.teamB.name}`;
-
                 statKeys.forEach(k => { let val = matchData.stats[team][k]; document.getElementById(`val${team}-${k}`).innerText = Array.isArray(val) ? val.length : val; });
             });
         }
 
         window.updatePossession = async (changedTeam) => {
-            let valA = parseInt(document.getElementById('posA').value) || 0;
-            let valB = parseInt(document.getElementById('posB').value) || 0;
+            let valA = parseInt(document.getElementById('posA').value) || 0; let valB = parseInt(document.getElementById('posB').value) || 0;
             if (changedTeam === 'A') { valB = 100 - valA; document.getElementById('posB').value = valB; } else { valA = 100 - valB; document.getElementById('posA').value = valA; }
             matchData.stats.A.possession = valA; matchData.stats.B.possession = valB;
             await updateDoc(doc(db, "matches", matchId), { "stats.A.possession": valA, "stats.B.possession": valB });
@@ -448,7 +458,7 @@
             await updateDoc(doc(db, "matches", matchId), { commentary: matchData.commentary }); document.getElementById('comm-input').value = ''; alert("Commentary pushed live!");
         }
 
-        // --- EXPORT MULTIPLE GRAPHICS ---
+        // --- GRAPHIC EXPORT ---
         window.exportImage = (title) => {
             document.getElementById('graphic-header-text').innerText = title;
             document.getElementById('graphic-tournament').innerText = matchData.tournamentName + " " + matchData.tournamentPhase;
