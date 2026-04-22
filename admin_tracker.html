@@ -28,12 +28,14 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #fff; padding: 30px; border-radius: 10px; width: 450px; text-align: center; max-height:85vh; overflow-y:auto; }
         .modal-content select, .modal-content input { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; box-sizing:border-box;}
-        .modal-content button { width: 100%; padding: 12px; background: var(--accent); color: #fff; font-weight: bold; border: none; cursor: pointer; border-radius: 5px; }
+        .modal-content button { width: 100%; padding: 12px; background: var(--accent); color: #fff; font-weight: bold; border: none; cursor: pointer; border-radius: 5px; margin-bottom: 10px; }
 
         .lineup-edit-row { display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; align-items:center; }
         .lineup-edit-row select { width:auto; margin:0; padding:5px; font-size:14px; }
 
         #loading-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+        
+        .red-card-icon { display:inline-block; width:10px; height:14px; background:#e74c3c; border-radius:2px; margin:0 3px; vertical-align:middle; }
 
         @media(max-width: 600px) {
             .scoreboard { flex-direction:column; gap:15px; text-align:center; }
@@ -52,7 +54,6 @@
     <div class="container" style="display:none;" id="main-ui">
         <div style="display:flex; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
             <button onclick="window.location.href='index.html'" style="background: #34495e; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">← Dashboard</button>
-            <!-- LINEUP EDITOR BUTTON -->
             <button id="btn-edit-lineups" onclick="openLineupEditor()" style="background: #27ae60; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold; display:none;">📋 Manage Starting Lineups</button>
         </div>
         
@@ -75,7 +76,13 @@
             <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post to App</button>
         </div>
 
-        <button id="export-btn" onclick="exportImage()" style="display:none; width:100%; margin-top:20px; background:#3498db; color:#fff; padding:15px; font-size:18px; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">📥 Download Match Graphic</button>
+        <div id="export-controls" style="display:none; margin-top:20px; flex-wrap:wrap; gap:10px; justify-content:center; background:#ecf0f1; padding:15px; border-radius:8px; border:1px solid #bdc3c7;">
+            <h4 style="width:100%; margin:0 0 10px 0; text-align:center;">Generate Graphics</h4>
+            <button onclick="exportImage('HALF TIME RESULT')" style="background:#3498db; flex:1;">📥 HT Graphic</button>
+            <button onclick="exportImage('FULL TIME RESULT')" style="background:#3498db; flex:1;">📥 FT Graphic</button>
+            <button onclick="exportImage('EXTRA TIME RESULT')" style="background:#3498db; flex:1;" id="btn-et-graphic">📥 ET Graphic</button>
+            <button onclick="exportImage('FINAL RESULT')" style="background:#3498db; flex:1;">📥 Final Graphic</button>
+        </div>
 
         <div id="penalties-ui" style="display:none; background:#34495e; padding:15px; margin-top:20px; border-radius:8px; justify-content:center; gap:30px; align-items:center; color:#fff;">
             <div class="stat-controls">Team A Pens <button onclick="changePen('A',-1)">-</button><button onclick="changePen('A',1)">+</button></div>
@@ -114,7 +121,7 @@
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label>
             <input type="text" id="ev-min" placeholder="Minute (e.g. 45)">
             <button onclick="saveEvent()">Save Event</button>
-            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
+            <button style="background:#555;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
         </div>
     </div>
     
@@ -127,7 +134,7 @@
             <label style="display:block; text-align:left;">Player Coming ON <strong style="color:var(--green);">↑</strong></label><select id="sub-in-select"></select>
             <label style="display:block; text-align:left;">Minute</label><input type="text" id="sub-min-input" placeholder="e.g. 60">
             <button onclick="confirmSub()" style="background:#8e44ad;">Confirm Sub</button>
-            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
+            <button style="background:#555;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
         </div>
     </div>
 
@@ -141,7 +148,7 @@
                 <div style="flex:1;"><h3 id="le-teamB" style="color:var(--primary); border-bottom:2px solid #ccc;">Team B</h3><div id="le-listB"></div></div>
             </div>
             <button onclick="saveLineups()" style="margin-top:20px;">Save Lineups to Database</button>
-            <button style="background:#555; margin-top:5px;" onclick="document.getElementById('lineup-modal').style.display='none'">Cancel</button>
+            <button style="background:#555;" onclick="document.getElementById('lineup-modal').style.display='none'">Cancel</button>
         </div>
     </div>
 
@@ -170,6 +177,7 @@
                 matchData = docSnap.data();
                 
                 isKnockout = matchData.tournamentPhase.toLowerCase().includes('knockout');
+                if(!isKnockout) document.getElementById('btn-et-graphic').style.display='none';
 
                 matchData.scoreA = matchData.scoreA || 0; matchData.scoreB = matchData.scoreB || 0;
                 if(!matchData.penalties) matchData.penalties = {A:0, B:0};
@@ -185,27 +193,30 @@
                 
                 const btn = document.getElementById('phase-btn');
                 if(matchData.status === 'Pending') { document.getElementById('btn-edit-lineups').style.display='block'; }
-                if(['1H', 'HT', '2H', 'FT', 'ET1', 'ET HT', 'ET2', 'PEN', 'FINISHED'].includes(matchData.status)) { document.getElementById('btn-edit-lineups').style.display='none'; }
+                if(['1H', 'HT', '2H', 'FT', 'ET1', 'ET HT', 'ET2', 'PEN', 'FINISHED'].includes(matchData.status)) { document.getElementById('btn-edit-lineups').style.display='none'; document.getElementById('export-controls').style.display='flex'; }
                 
-                if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download HT Graphic'; }
-                if(matchData.status === '2H') { btn.innerText = isKnockout ? "End 2nd Half" : "End Match"; document.getElementById('export-btn').style.display='none'; }
+                if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; }
+                if(matchData.status === '2H') { btn.innerText = isKnockout && matchData.scoreA === matchData.scoreB ? "End 2nd Half" : "End Match"; }
                 if(matchData.status === 'FT') { 
-                    if(isKnockout) { btn.innerText = "Start Extra Time"; document.getElementById('export-btn').style.display='none'; }
-                    else { document.getElementById('clock-controls').style.display='none'; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download Final Graphic';}
+                    if(isKnockout && matchData.scoreA === matchData.scoreB) { btn.innerText = "Start Extra Time"; }
+                    else { document.getElementById('clock-controls').style.display='none'; }
                 }
                 if(matchData.status === 'ET1') btn.innerText = "End ET 1st Half";
                 if(matchData.status === 'ET HT') btn.innerText = "Start ET 2nd Half";
                 if(matchData.status === 'ET2') btn.innerText = "End Extra Time";
                 if(matchData.status === 'PEN') { btn.innerText = "End Match"; document.getElementById('penalties-ui').style.display='flex'; document.getElementById('pen-score-display').style.display='block'; }
-                if(matchData.status === 'FINISHED') { document.getElementById('clock-controls').style.display='none'; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download Final Graphic';}
+                if(matchData.status === 'FINISHED') { document.getElementById('clock-controls').style.display='none'; document.getElementById('export-controls').style.display='flex';}
 
                 document.getElementById('penA').innerText = matchData.penalties.A; document.getElementById('penB').innerText = matchData.penalties.B;
 
                 let min = Math.ceil(matchSeconds / 60) || 1;
                 document.getElementById('match-clock-display').innerText = matchData.status === 'Pending' ? "00:00" : min + "'";
 
-                document.getElementById('scoreA-name').innerText = matchData.teamA.name; document.getElementById('scoreA-logo').src = matchData.teamA.logo;
-                document.getElementById('scoreB-name').innerText = matchData.teamB.name; document.getElementById('scoreB-logo').src = matchData.teamB.logo;
+                let rA = matchData.stats.A.reds.length; let rB = matchData.stats.B.reds.length;
+                let rAHtml = Array(rA).fill(`<div class="red-card-icon"></div>`).join(''); let rBHtml = Array(rB).fill(`<div class="red-card-icon"></div>`).join('');
+
+                document.getElementById('scoreA-name').innerHTML = `${matchData.teamA.name} ${rAHtml}`; document.getElementById('scoreA-logo').src = matchData.teamA.logo;
+                document.getElementById('scoreB-name').innerHTML = `${rBHtml} ${matchData.teamB.name}`; document.getElementById('scoreB-logo').src = matchData.teamB.logo;
                 document.getElementById('posA').value = matchData.stats.A.possession || 50; document.getElementById('posB').value = matchData.stats.B.possession || 50;
 
                 buildStatsUI('A'); buildStatsUI('B'); updateStatDisplays();
@@ -238,7 +249,7 @@
 
         window.saveLineups = async () => {
             const getNewArrays = (team) => {
-                let fullRoster =[...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
+                let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
                 let starts = []; let subs =[];
                 fullRoster.forEach((p, i) => { if(document.getElementById(`le-${team}-${i}`).value === 'Starter') starts.push(p); else subs.push(p); });
                 return { starters: starts, subs: subs };
@@ -269,7 +280,7 @@
             getActivePlayers(team).forEach(p => { if(p) offSel.add(new Option(p, p)); });
             
             let inSel = document.getElementById('sub-in-select'); inSel.innerHTML = '';
-            let all =[...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs].map(s=>s.name);
+            let all = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs].map(s=>s.name);
             all.filter(p => !getActivePlayers(team).includes(p)).forEach(p => { if(p) inSel.add(new Option(p, p)); });
             
             document.getElementById('sub-min-input').value = Math.max(1, Math.ceil(matchSeconds/60));
@@ -291,11 +302,11 @@
         // --- CLOCK & PHASE ENGINE ---
         window.toggleClock = async () => {
             const btn = document.getElementById('clock-toggle-btn');
-            
             if(matchData.status === 'Pending') { 
                 matchData.status = '1H'; 
                 document.getElementById('match-phase-badge').innerText='1H'; 
                 document.getElementById('btn-edit-lineups').style.display='none';
+                document.getElementById('export-controls').style.display='flex';
                 await updateDoc(doc(db, "matches", matchId), { status: '1H' });
             }
 
@@ -318,15 +329,16 @@
             switch(matchData.status) {
                 case '1H':
                     matchData.status = 'HT'; btn.innerText = "Start 2nd Half"; 
-                    document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download HT Graphic';
                     break;
                 case 'HT':
-                    matchData.status = '2H'; matchSeconds = 2700; btn.innerText = isKnockout ? "End 2nd Half" : "End Match"; 
-                    document.getElementById('export-btn').style.display='none'; window.toggleClock(); break;
+                    matchData.status = '2H'; matchSeconds = 2700; 
+                    btn.innerText = (isKnockout && matchData.scoreA === matchData.scoreB) ? "End 2nd Half" : "End Match"; 
+                    window.toggleClock(); break;
                 case '2H':
                     if(!confirm("End the 2nd Half?")) return;
                     matchData.status = 'FT'; matchSeconds = 5400; 
-                    if(isKnockout) { btn.innerText = "Start Extra Time"; document.getElementById('clock-controls').style.display='flex'; }
+                    // NO EXTRA TIME IF ONE TEAM IS WINNING
+                    if(isKnockout && matchData.scoreA === matchData.scoreB) { btn.innerText = "Start Extra Time"; document.getElementById('clock-controls').style.display='flex'; }
                     else { triggerEndMatch(); return; }
                     break;
                 case 'FT':
@@ -360,7 +372,6 @@
             matchData.status = 'FINISHED'; 
             document.getElementById('motm-modal').style.display='none';
             document.getElementById('clock-controls').style.display='none'; 
-            document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download Final Graphic';
             document.getElementById('match-phase-badge').innerText = 'FINISHED';
             await updateDoc(doc(db, "matches", matchId), { status: 'FINISHED', motm: matchData.motm, rawSeconds: matchSeconds });
             alert("Match Ended! MOTM Saved.");
@@ -376,6 +387,11 @@
 
         window.updateStatDisplays = () => {['A','B'].forEach(team => {
                 document.getElementById(`score${team}`).innerText = matchData[`score${team}`];
+                
+                let rC = matchData.stats[team].reds.length;
+                let rHtml = Array(rC).fill(`<div class="red-card-icon"></div>`).join('');
+                document.getElementById(`score${team}-name`).innerHTML = team==='A' ? `${matchData.teamA.name} ${rHtml}` : `${rHtml} ${matchData.teamB.name}`;
+
                 statKeys.forEach(k => { let val = matchData.stats[team][k]; document.getElementById(`val${team}-${k}`).innerText = Array.isArray(val) ? val.length : val; });
             });
         }
@@ -453,15 +469,15 @@
             alert("Commentary pushed live!");
         }
 
-        // --- GRAPHIC EXPORT ---
-        window.exportImage = () => {
-            document.getElementById('graphic-header-text').innerText = (matchData.status === 'HT') ? "HALF TIME RESULT" : "MATCH RESULT";
+        // --- EXPORT MULTIPLE GRAPHICS ---
+        window.exportImage = (title) => {
+            document.getElementById('graphic-header-text').innerText = title;
             document.getElementById('graphic-tournament').innerText = matchData.tournamentName + " " + matchData.tournamentPhase;
             document.getElementById('graphic-scoreA').innerText = matchData.scoreA; document.getElementById('graphic-scoreB').innerText = matchData.scoreB;
-            document.getElementById('graphic-nameA').innerText = matchData.teamA.name; document.getElementById('graphic-logoA').src = matchData.teamA.logo; document.getElementById('graphic-logoA').style.display = 'block';
-            document.getElementById('graphic-nameB').innerText = matchData.teamB.name; document.getElementById('graphic-logoB').src = matchData.teamB.logo; document.getElementById('graphic-logoB').style.display = 'block';
+            document.getElementById('graphic-nameA').innerText = matchData.teamA.name; document.getElementById('graphic-logoA').src = matchData.teamA.logo;
+            document.getElementById('graphic-nameB').innerText = matchData.teamB.name; document.getElementById('graphic-logoB').src = matchData.teamB.logo;
             
-            if(matchData.status === 'FINISHED' && (matchData.penalties.A > 0 || matchData.penalties.B > 0)) {
+            if((title === 'FINAL RESULT' || title === 'EXTRA TIME RESULT') && (matchData.penalties.A > 0 || matchData.penalties.B > 0)) {
                 document.getElementById('graphic-pens').style.display = 'block';
                 document.getElementById('graphic-pens').innerText = `(Pen: ${matchData.penalties.A} - ${matchData.penalties.B})`;
             } else { document.getElementById('graphic-pens').style.display = 'none'; }
@@ -476,13 +492,11 @@
             };
             document.getElementById('graphic-eventsA').innerHTML = buildEvents('A', false); document.getElementById('graphic-eventsB').innerHTML = buildEvents('B', true);
 
-            // Temporarily show area out of view to ensure html2canvas captures it
             const area = document.getElementById('social-graphic-area').parentElement;
             area.style.left = '0'; area.style.zIndex = '-100'; area.style.position = 'fixed';
-            
             setTimeout(() => {
                 html2canvas(document.getElementById('social-graphic-area'), { scale: 2, useCORS: true, backgroundColor: null }).then(c => {
-                    const l = document.createElement('a'); l.download = `${matchData.teamA.name}_vs_${matchData.teamB.name}_${matchData.status}.png`; l.href = c.toDataURL(); l.click();
+                    const l = document.createElement('a'); l.download = `${matchData.teamA.name}_vs_${matchData.teamB.name}_${title}.png`; l.href = c.toDataURL(); l.click();
                     area.style.left = '-9999px';
                 });
             }, 500); 
