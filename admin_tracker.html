@@ -84,9 +84,13 @@
     <!-- FIREBASE APP ENGINE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        // ✅ NEW: Added getAuth to verify the admin is logged in from the dashboard!
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyAwQduFWIpvvC8kvfcG4b3MX_LkZegAUvk", authDomain: "assist-24272.firebaseapp.com", projectId: "assist-24272" });
+        // ✅ NEW: Initialize Auth so Firebase knows we are allowed to write to the database
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
         const matchId = new URLSearchParams(window.location.search).get('id');
@@ -100,12 +104,12 @@
                 if(!docSnap.exists()) throw new Error("Match not found.");
                 matchData = docSnap.data();
                 
-                // SAFEGUARDS AGAINST CRASHES FOR OLD DATA
+                // SAFEGUARDS
                 matchData.scoreA = matchData.scoreA || 0; matchData.scoreB = matchData.scoreB || 0;
                 ['A', 'B'].forEach(t => {
                     if(!matchData.stats[t].scorers) matchData.stats[t].scorers =[];
-                    if(!matchData.stats[t].yellows) matchData.stats[t].yellows = [];
-                    if(!matchData.stats[t].reds) matchData.stats[t].reds = [];
+                    if(!matchData.stats[t].yellows) matchData.stats[t].yellows =[];
+                    if(!matchData.stats[t].reds) matchData.stats[t].reds =[];
                 });
                 if(!matchData.commentary) matchData.commentary =[];
 
