@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Broadcast Engine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --bg: #ecf0f1; --primary: #2c3e50; --white: #fff; --accent: #e74c3c; --border: #bdc3c7; --gold: #f1c40f; --neon: #90ff33; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; color: var(--primary); }
+        .container { max-width: 1200px; margin: 0 auto; background: var(--white); padding: 25px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        .scoreboard { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: var(--white); padding: 20px; border-radius: 10px; margin-bottom: 20px; font-size: 28px; font-weight: bold; }
+        .team-score-wrapper { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .scoreboard-logo { max-width: 60px; max-height: 60px; border-radius: 5px; background: rgba(255,255,255,0.1); object-fit: contain; }
+        .clock-container { display: flex; flex-direction: column; align-items: center; }
+        #match-clock-display { font-size: 38px; font-family: monospace; background: #1a1a1a; color: #fff; padding: 5px 20px; border-radius: 5px; }
+        
+        .stats-grid { display: flex; justify-content: space-between; gap: 25px; margin-top:20px; }
+        .team-column { flex: 1; background: #f9f9f9; padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd; font-size: 18px; }
+        .stat-controls button { padding: 5px 15px; font-size: 18px; background: #34495e; color: #fff; border: none; cursor: pointer; border-radius: 4px; }
+        .stat-value { font-weight: bold; font-size: 20px; min-width: 35px; text-align: center; display: inline-block; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #fff; padding: 30px; border-radius: 10px; width: 400px; text-align: center; }
+        .modal-content select, .modal-content input { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
+        .modal-content button { width: 100%; padding: 12px; background: var(--accent); color: #fff; font-weight: bold; border: none; cursor: pointer; border-radius: 5px; }
+
+        #loading-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen"><div>📡 Connecting to Live Match...</div><div style="font-size:14px; color:#888; margin-top:10px;">Fetching rosters and syncing clock...</div></div>
+
+    <div class="container" style="display:none;" id="main-ui">
+        <button onclick="window.location.href='index.html'" style="background: #34495e; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-bottom:20px;">← Back to Dashboard</button>
+        
+        <div class="scoreboard">
+            <div class="team-score-wrapper"><img id="scoreA-logo" class="scoreboard-logo"><div id="scoreA-name">Team A</div></div>
+            <div class="clock-container">
+                <div id="match-phase-badge" style="background:var(--gold); color:#000; padding:4px 12px; border-radius:15px; font-size:14px; font-weight:bold; margin-bottom:5px;">PENDING</div>
+                <div style="display:flex; align-items:center; gap:15px;"><span id="scoreA" style="font-size: 42px;">0</span><div id="match-clock-display">00:00</div><span id="scoreB" style="font-size: 42px;">0</span></div>
+                <div style="margin-top:10px; display:flex; gap:10px;" id="clock-controls">
+                    <button onclick="toggleClock()" id="clock-toggle-btn" style="padding:6px 12px; background:#34495e; color:#fff; border:none; border-radius:4px; cursor:pointer;">▶ Start Clock</button>
+                    <button onclick="advancePhase()" id="phase-btn" style="padding:6px 12px; background:var(--gold); color:#000; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">Next Phase</button>
+                </div>
+            </div>
+            <div class="team-score-wrapper" style="flex-direction:row-reverse;"><img id="scoreB-logo" class="scoreboard-logo"><div id="scoreB-name">Team B</div></div>
+        </div>
+
+        <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px;">
+            <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px;">
+            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:0 20px; border-radius:5px; cursor:pointer;">Post to App</button>
+        </div>
+
+        <button id="export-btn" onclick="exportImage()" style="display:none; width:100%; margin-top:20px; background:#3498db; color:#fff; padding:15px; font-size:18px; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">📥 Download Match Graphic</button>
+
+        <div class="stats-grid">
+            <div class="team-column" id="colA"><h3>Team A Stats</h3><div id="statsA-container"></div></div>
+            <div class="team-column" id="colB"><h3>Team B Stats</h3><div id="statsB-container"></div></div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="event-modal" class="modal"><div class="modal-content"><h2 id="ev-title">Record Event</h2><select id="ev-player"></select><input type="text" id="ev-min" placeholder="Minute (e.g. 45)"><button onclick="saveEvent()">Save Event</button><button style="background:#555; margin-top:10px;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button></div></div>
+
+    <!-- Admin MOTM Modal -->
+    <div id="motm-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0;">⭐ Assign MOTM ⭐</h2><select id="motm-select"></select><button onclick="confirmMOTM()">Confirm Full Time</button></div></div>
+
+    <!-- Hidden Graphic Export Area -->
+    <div style="position: absolute; left: -9999px; top: 0; width: 0; height: 0; overflow: hidden;"><div id="social-graphic-area" style="width: 800px; height: 800px; background: linear-gradient(135deg, #0d283c 0%, #0d283c 40%, #173b2c 100%); position: relative; font-family: 'Segoe UI', sans-serif;"><div id="graphic-header-text" style="background: var(--neon); color: #000; text-align: center; padding: 15px; font-size: 26px; font-weight: 900; letter-spacing: 2px;">MATCH RESULT</div><div style="text-align: center; margin-top: 35px; color: #fff; font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px;">🏆 <span id="graphic-tournament">R16 M1</span></div><div style="text-align: center; margin-top: 30px; font-size: 160px; font-weight: 900; color: #fff; line-height: 1;"><span id="graphic-scoreA">0</span> <span style="font-size: 140px; margin: 0 15px; position:relative; top:-10px;">:</span> <span id="graphic-scoreB">0</span></div><div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding: 25px 40px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); height: 50px;"><div style="display: flex; align-items: center; gap: 18px;"><img id="graphic-logoA" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="graphic-nameA" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM A</div></div><div style="display: flex; align-items: center; gap: 18px; flex-direction: row-reverse;"><img id="graphic-logoB" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="graphic-nameB" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM B</div></div></div><div style="display: flex; justify-content: space-between; padding: 35px 40px; height: 100%; box-sizing: border-box;"><div id="graphic-eventsA" style="color: #fff; font-size: 20px; font-weight: bold; line-height: 1.8; flex: 1;"></div><div id="graphic-eventsB" style="color: #fff; font-size: 20px; font-weight: bold; line-height: 1.8; flex: 1; text-align: right;"></div></div></div></div>
+
+    <!-- FIREBASE APP ENGINE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+
+        const app = initializeApp({ apiKey: "AIzaSyAwQduFWIpvvC8kvfcG4b3MX_LkZegAUvk", authDomain: "assist-24272.firebaseapp.com", projectId: "assist-24272" });
+        const db = getFirestore(app);
+
+        const matchId = new URLSearchParams(window.location.search).get('id');
+        let matchData = null; let matchSeconds = 0; let timerInterval = null; let isClockRunning = false; let pendingStat = null;
+
+        if(!matchId) { alert("No match ID found! Go back to dashboard."); window.location.href='index.html'; }
+
+        async function loadMatch() {
+            try {
+                const docSnap = await getDoc(doc(db, "matches", matchId));
+                if(!docSnap.exists()) throw new Error("Match not found.");
+                matchData = docSnap.data();
+                
+                matchSeconds = matchData.rawSeconds || 0;
+                document.getElementById('match-phase-badge').innerText = matchData.status;
+                document.getElementById('match-clock-display').innerText = matchData.clock;
+                
+                const btn = document.getElementById('phase-btn');
+                if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; document.getElementById('export-btn').style.display='block'; }
+                if(matchData.status === '2H') { btn.innerText = "End Match"; document.getElementById('export-btn').style.display='none'; }
+                if(matchData.status === 'FT') { document.getElementById('clock-controls').style.display='none'; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download Final Graphic';}
+
+                document.getElementById('scoreA-name').innerText = matchData.teamA.name; document.getElementById('scoreA-logo').src = matchData.teamA.logo;
+                document.getElementById('scoreB-name').innerText = matchData.teamB.name; document.getElementById('scoreB-logo').src = matchData.teamB.logo;
+                
+                buildStatsUI('A'); buildStatsUI('B'); updateStatDisplays();
+                document.getElementById('loading-screen').style.display = 'none'; document.getElementById('main-ui').style.display = 'block';
+            } catch(e) { console.error(e); alert("Error loading match."); }
+        }
+        loadMatch();
+
+        // --- CLOCK & PHASE ENGINE ---
+        window.formatClock = (seconds) => {
+            let p = matchData.status;
+            if (p === '1H' && seconds >= 2700) return `45+${String(Math.floor((seconds-2700)/60)).padStart(2,'0')}:${String((seconds-2700)%60).padStart(2,'0')}`;
+            if (p === '2H' && seconds >= 5400) return `90+${String(Math.floor((seconds-5400)/60)).padStart(2,'0')}:${String((seconds-5400)%60).padStart(2,'0')}`;
+            return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+        }
+
+        window.toggleClock = async () => {
+            const btn = document.getElementById('clock-toggle-btn');
+            
+            // IF Starting Match initially, force update immediately to clear "Upcoming"
+            if(matchData.status === 'Pending') { 
+                matchData.status = '1H'; 
+                document.getElementById('match-phase-badge').innerText='1H'; 
+                await updateDoc(doc(db, "matches", matchId), { status: '1H', clock: "00:00" });
+            }
+
+            if (isClockRunning) {
+                clearInterval(timerInterval); isClockRunning = false; btn.innerText = "▶ Resume";
+                updateDoc(doc(db, "matches", matchId), { rawSeconds: matchSeconds, clock: formatClock(matchSeconds) });
+            } else {
+                timerInterval = setInterval(() => {
+                    matchSeconds++; document.getElementById('match-clock-display').innerText = formatClock(matchSeconds);
+                    if(matchSeconds % 5 === 0) updateDoc(doc(db, "matches", matchId), { rawSeconds: matchSeconds, clock: formatClock(matchSeconds) });
+                }, 1000);
+                isClockRunning = true; btn.innerText = "⏸ Pause";
+            }
+        }
+
+        window.advancePhase = async () => {
+            const btn = document.getElementById('phase-btn');
+            if(isClockRunning) toggleClock(); 
+            
+            if(matchData.status === '1H') { 
+                matchData.status = 'HT'; btn.innerText = "Start 2nd Half"; 
+                document.getElementById('export-btn').style.display='block';
+                document.getElementById('export-btn').innerText='📥 Download HT Graphic';
+                await updateDoc(doc(db, "matches", matchId), { status: 'HT', clock: formatClock(matchSeconds) });
+            }
+            else if(matchData.status === 'HT') { 
+                matchData.status = '2H'; matchSeconds = 2700; btn.innerText = "End Match"; 
+                document.getElementById('export-btn').style.display='none';
+                await updateDoc(doc(db, "matches", matchId), { status: '2H', clock: "45:00", rawSeconds: 2700 });
+                toggleClock(); 
+            }
+            else if(matchData.status === '2H') { 
+                if(!confirm("Are you sure you want to end the match?")) return;
+                // Pop the MOTM selector
+                const sel = document.getElementById('motm-select'); sel.innerHTML = '';
+                const optA = document.createElement('optgroup'); optA.label = matchData.teamA.name; matchData.lineupA.starters.forEach(p=>{if(p.name) optA.appendChild(new Option(p.name, p.name))}); sel.appendChild(optA);
+                const optB = document.createElement('optgroup'); optB.label = matchData.teamB.name; matchData.lineupB.starters.forEach(p=>{if(p.name) optB.appendChild(new Option(p.name, p.name))}); sel.appendChild(optB);
+                document.getElementById('motm-modal').style.display='flex';
+            }
+            document.getElementById('match-phase-badge').innerText = matchData.status;
+            document.getElementById('match-clock-display').innerText = formatClock(matchSeconds);
+        }
+
+        window.confirmMOTM = async () => {
+            matchData.motm = document.getElementById('motm-select').value;
+            matchData.status = 'FT';
+            document.getElementById('motm-modal').style.display='none';
+            document.getElementById('clock-controls').style.display='none'; 
+            document.getElementById('export-btn').style.display='block';
+            document.getElementById('export-btn').innerText='📥 Download Full Time Graphic';
+            document.getElementById('match-phase-badge').innerText = 'FT';
+            await updateDoc(doc(db, "matches", matchId), { status: 'FT', motm: matchData.motm, rawSeconds: matchSeconds, clock: formatClock(matchSeconds) });
+            alert("Match Ended! MOTM Saved.");
+        }
+
+        // --- STAT CONTROLS & EVENTS ---
+        const statKeys =['goals', 'shots', 'shotsOnTarget', 'fouls', 'corners', 'yellows', 'reds'];
+        function buildStatsUI(team) {
+            let html = '';
+            statKeys.forEach(k => { html += `<div class="stat-row"><span style="text-transform:capitalize;">${k}</span><div class="stat-controls"><button onclick="changeStat('${team}','${k}',-1)">-</button><span class="stat-value" id="val${team}-${k}">0</span><button onclick="changeStat('${team}','${k}',1)">+</button></div></div>`; });
+            document.getElementById(`stats${team}-container`).innerHTML = html;
+        }
+
+        window.updateStatDisplays = () => {['A','B'].forEach(team => {
+                document.getElementById(`score${team}`).innerText = matchData[`score${team}`];
+                statKeys.forEach(k => { let val = matchData.stats[team][k]; document.getElementById(`val${team}-${k}`).innerText = Array.isArray(val) ? val.length : val; });
+            });
+        }
+
+        window.changeStat = async (team, key, amt) => {
+            let isArr = Array.isArray(matchData.stats[team][key]);
+            if(amt > 0 &&['goals', 'yellows', 'reds'].includes(key)) {
+                pendingStat = {team, key};
+                document.getElementById('ev-title').innerText = `Record ${key.toUpperCase()}`;
+                const sel = document.getElementById('ev-player'); sel.innerHTML='';
+                let roster =[...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
+                roster.forEach(p => { if(p.name) sel.add(new Option(p.name, p.name)); });
+                document.getElementById('ev-min').value = Math.ceil(matchSeconds/60);
+                document.getElementById('event-modal').style.display='flex';
+                return;
+            }
+
+            if(amt < 0) {
+                if(isArr && matchData.stats[team][key].length > 0) matchData.stats[team][key].pop();
+                else if(!isArr && matchData.stats[team][key] > 0) matchData.stats[team][key]--;
+                if(key === 'goals') matchData[`score${team}`]--;
+            } else if(!isArr) { matchData.stats[team][key]++; }
+
+            updateStatDisplays();
+            await updateDoc(doc(db, "matches", matchId), { stats: matchData.stats, scoreA: matchData.scoreA, scoreB: matchData.scoreB });
+        }
+
+        window.saveEvent = async () => {
+            const team = pendingStat.team; const key = pendingStat.key;
+            const p = document.getElementById('ev-player').value || "Unknown"; 
+            const m = document.getElementById('ev-min').value || "";
+            
+            if(key === 'goals') { matchData.stats[team].scorers.push({name: p, minute: m}); matchData[`score${team}`]++; } 
+            else { matchData.stats[team][key].push(p); }
+            
+            document.getElementById('event-modal').style.display='none'; updateStatDisplays();
+            await updateDoc(doc(db, "matches", matchId), { stats: matchData.stats, scoreA: matchData.scoreA, scoreB: matchData.scoreB });
+        }
+
+        window.postCommentary = async () => {
+            const txt = document.getElementById('comm-input').value;
+            if(!txt) return;
+            if(!matchData.commentary) matchData.commentary =[];
+            matchData.commentary.push({ minute: Math.ceil(matchSeconds/60), text: txt });
+            await updateDoc(doc(db, "matches", matchId), { commentary: matchData.commentary });
+            document.getElementById('comm-input').value = '';
+            alert("Commentary pushed live!");
+        }
+
+        // --- GRAPHIC EXPORT ---
+        window.exportImage = () => {
+            document.getElementById('graphic-header-text').innerText = (matchData.status === 'HT') ? "HALF TIME RESULT" : "MATCH RESULT";
+            document.getElementById('graphic-tournament').innerText = matchData.tournamentName + " " + matchData.tournamentPhase;
+            document.getElementById('graphic-scoreA').innerText = matchData.scoreA; document.getElementById('graphic-scoreB').innerText = matchData.scoreB;
+            document.getElementById('graphic-nameA').innerText = matchData.teamA.name; document.getElementById('graphic-logoA').src = matchData.teamA.logo; document.getElementById('graphic-logoA').style.display = 'block';
+            document.getElementById('graphic-nameB').innerText = matchData.teamB.name; document.getElementById('graphic-logoB').src = matchData.teamB.logo; document.getElementById('graphic-logoB').style.display = 'block';
+            
+            const buildEvents = (team, right) => {
+                let html = ''; let align = right ? 'justify-content: flex-end;' : 'justify-content: flex-start;';
+                matchData.stats[team].scorers.forEach(s => { html += `<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; ${align}"> ${right ? `<span>${s.name.toUpperCase()} ${s.minute?"'"+s.minute:''}</span> <span>⚽</span>` : `<span>⚽</span> <span>${s.name.toUpperCase()} ${s.minute?"'"+s.minute:''}</span>`} </div>`; });
+                return html;
+            };
+            document.getElementById('graphic-eventsA').innerHTML = buildEvents('A', false); document.getElementById('graphic-eventsB').innerHTML = buildEvents('B', true);
+
+            setTimeout(() => {
+                html2canvas(document.getElementById('social-graphic-area'), { scale: 2, useCORS: true, backgroundColor: null }).then(c => {
+                    const l = document.createElement('a'); l.download = `${matchData.teamA.name}_vs_${matchData.teamB.name}_${matchData.status}.png`; l.href = c.toDataURL(); l.click();
+                });
+            }, 500); 
+        }
+    </script>
+</body>
+</html>
