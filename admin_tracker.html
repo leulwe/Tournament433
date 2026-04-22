@@ -21,6 +21,7 @@
         .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd; font-size: 18px; }
         .stat-controls button { padding: 5px 15px; font-size: 18px; background: #34495e; color: #fff; border: none; cursor: pointer; border-radius: 4px; }
         .stat-value { font-weight: bold; font-size: 20px; min-width: 35px; text-align: center; display: inline-block; }
+        .possession-control input { width: 60px; padding: 5px; text-align: center; font-weight: bold; font-size: 18px; border: 1px solid #ccc; border-radius: 4px; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #fff; padding: 30px; border-radius: 10px; width: 400px; text-align: center; }
@@ -58,8 +59,16 @@
         <button id="export-btn" onclick="exportImage()" style="display:none; width:100%; margin-top:20px; background:#3498db; color:#fff; padding:15px; font-size:18px; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">📥 Download Match Graphic</button>
 
         <div class="stats-grid">
-            <div class="team-column" id="colA"><h3>Team A Stats</h3><div id="statsA-container"></div></div>
-            <div class="team-column" id="colB"><h3>Team B Stats</h3><div id="statsB-container"></div></div>
+            <div class="team-column" id="colA">
+                <h3>Team A Stats</h3>
+                <div class="stat-row"><span>Possession (%)</span><div class="possession-control"><input type="number" id="posA" value="50" min="0" max="100" onchange="updatePossession('A')"></div></div>
+                <div id="statsA-container"></div>
+            </div>
+            <div class="team-column" id="colB">
+                <h3>Team B Stats</h3>
+                <div class="stat-row"><span>Possession (%)</span><div class="possession-control"><input type="number" id="posB" value="50" min="0" max="100" onchange="updatePossession('B')"></div></div>
+                <div id="statsB-container"></div>
+            </div>
         </div>
     </div>
 
@@ -91,18 +100,30 @@
                 if(!docSnap.exists()) throw new Error("Match not found.");
                 matchData = docSnap.data();
                 
+                // SAFEGUARDS AGAINST CRASHES FOR OLD DATA
+                matchData.scoreA = matchData.scoreA || 0; matchData.scoreB = matchData.scoreB || 0;
+                ['A', 'B'].forEach(t => {
+                    if(!matchData.stats[t].scorers) matchData.stats[t].scorers =[];
+                    if(!matchData.stats[t].yellows) matchData.stats[t].yellows = [];
+                    if(!matchData.stats[t].reds) matchData.stats[t].reds = [];
+                });
+                if(!matchData.commentary) matchData.commentary =[];
+
                 matchSeconds = matchData.rawSeconds || 0;
                 document.getElementById('match-phase-badge').innerText = matchData.status;
                 document.getElementById('match-clock-display').innerText = matchData.clock;
                 
                 const btn = document.getElementById('phase-btn');
-                if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; document.getElementById('export-btn').style.display='block'; }
+                if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download HT Graphic'; }
                 if(matchData.status === '2H') { btn.innerText = "End Match"; document.getElementById('export-btn').style.display='none'; }
                 if(matchData.status === 'FT') { document.getElementById('clock-controls').style.display='none'; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download Final Graphic';}
 
                 document.getElementById('scoreA-name').innerText = matchData.teamA.name; document.getElementById('scoreA-logo').src = matchData.teamA.logo;
                 document.getElementById('scoreB-name').innerText = matchData.teamB.name; document.getElementById('scoreB-logo').src = matchData.teamB.logo;
                 
+                document.getElementById('posA').value = matchData.stats.A.possession || 50;
+                document.getElementById('posB').value = matchData.stats.B.possession || 50;
+
                 buildStatsUI('A'); buildStatsUI('B'); updateStatDisplays();
                 document.getElementById('loading-screen').style.display = 'none'; document.getElementById('main-ui').style.display = 'block';
             } catch(e) { console.error(e); alert("Error loading match."); }
@@ -120,7 +141,6 @@
         window.toggleClock = async () => {
             const btn = document.getElementById('clock-toggle-btn');
             
-            // IF Starting Match initially, force update immediately to clear "Upcoming"
             if(matchData.status === 'Pending') { 
                 matchData.status = '1H'; 
                 document.getElementById('match-phase-badge').innerText='1H'; 
@@ -141,7 +161,7 @@
 
         window.advancePhase = async () => {
             const btn = document.getElementById('phase-btn');
-            if(isClockRunning) toggleClock(); 
+            if(isClockRunning) window.toggleClock(); 
             
             if(matchData.status === '1H') { 
                 matchData.status = 'HT'; btn.innerText = "Start 2nd Half"; 
@@ -153,11 +173,10 @@
                 matchData.status = '2H'; matchSeconds = 2700; btn.innerText = "End Match"; 
                 document.getElementById('export-btn').style.display='none';
                 await updateDoc(doc(db, "matches", matchId), { status: '2H', clock: "45:00", rawSeconds: 2700 });
-                toggleClock(); 
+                window.toggleClock(); 
             }
             else if(matchData.status === '2H') { 
                 if(!confirm("Are you sure you want to end the match?")) return;
-                // Pop the MOTM selector
                 const sel = document.getElementById('motm-select'); sel.innerHTML = '';
                 const optA = document.createElement('optgroup'); optA.label = matchData.teamA.name; matchData.lineupA.starters.forEach(p=>{if(p.name) optA.appendChild(new Option(p.name, p.name))}); sel.appendChild(optA);
                 const optB = document.createElement('optgroup'); optB.label = matchData.teamB.name; matchData.lineupB.starters.forEach(p=>{if(p.name) optB.appendChild(new Option(p.name, p.name))}); sel.appendChild(optB);
@@ -173,7 +192,7 @@
             document.getElementById('motm-modal').style.display='none';
             document.getElementById('clock-controls').style.display='none'; 
             document.getElementById('export-btn').style.display='block';
-            document.getElementById('export-btn').innerText='📥 Download Full Time Graphic';
+            document.getElementById('export-btn').innerText='📥 Download Final Graphic';
             document.getElementById('match-phase-badge').innerText = 'FT';
             await updateDoc(doc(db, "matches", matchId), { status: 'FT', motm: matchData.motm, rawSeconds: matchSeconds, clock: formatClock(matchSeconds) });
             alert("Match Ended! MOTM Saved.");
@@ -193,6 +212,14 @@
             });
         }
 
+        window.updatePossession = async (changedTeam) => {
+            let valA = parseInt(document.getElementById('posA').value) || 0;
+            let valB = parseInt(document.getElementById('posB').value) || 0;
+            if (changedTeam === 'A') { valB = 100 - valA; document.getElementById('posB').value = valB; } else { valA = 100 - valB; document.getElementById('posA').value = valA; }
+            matchData.stats.A.possession = valA; matchData.stats.B.possession = valB;
+            await updateDoc(doc(db, "matches", matchId), { "stats.A.possession": valA, "stats.B.possession": valB });
+        }
+
         window.changeStat = async (team, key, amt) => {
             let isArr = Array.isArray(matchData.stats[team][key]);
             if(amt > 0 &&['goals', 'yellows', 'reds'].includes(key)) {
@@ -201,7 +228,7 @@
                 const sel = document.getElementById('ev-player'); sel.innerHTML='';
                 let roster =[...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
                 roster.forEach(p => { if(p.name) sel.add(new Option(p.name, p.name)); });
-                document.getElementById('ev-min').value = Math.ceil(matchSeconds/60);
+                document.getElementById('ev-min').value = Math.max(1, Math.ceil(matchSeconds/60));
                 document.getElementById('event-modal').style.display='flex';
                 return;
             }
@@ -209,7 +236,7 @@
             if(amt < 0) {
                 if(isArr && matchData.stats[team][key].length > 0) matchData.stats[team][key].pop();
                 else if(!isArr && matchData.stats[team][key] > 0) matchData.stats[team][key]--;
-                if(key === 'goals') matchData[`score${team}`]--;
+                if(key === 'goals' && matchData[`score${team}`] > 0) matchData[`score${team}`]--;
             } else if(!isArr) { matchData.stats[team][key]++; }
 
             updateStatDisplays();
@@ -232,7 +259,7 @@
             const txt = document.getElementById('comm-input').value;
             if(!txt) return;
             if(!matchData.commentary) matchData.commentary =[];
-            matchData.commentary.push({ minute: Math.ceil(matchSeconds/60), text: txt });
+            matchData.commentary.push({ minute: Math.max(1, Math.ceil(matchSeconds/60)), text: txt });
             await updateDoc(doc(db, "matches", matchId), { commentary: matchData.commentary });
             document.getElementById('comm-input').value = '';
             alert("Commentary pushed live!");
