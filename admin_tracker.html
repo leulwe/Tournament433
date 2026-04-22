@@ -33,6 +33,13 @@
         .lineup-edit-row select { width:auto; margin:0; padding:5px; font-size:14px; }
 
         #loading-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
+
+        @media(max-width: 600px) {
+            .scoreboard { flex-direction:column; gap:15px; text-align:center; }
+            .team-score-wrapper { justify-content:center; width:100%; }
+            .team-score-wrapper:last-child { flex-direction:row !important; }
+            .stats-grid { flex-direction:column; }
+        }
     </style>
 </head>
 <body>
@@ -40,9 +47,8 @@
     <div id="loading-screen"><div>📡 Connecting to Live Match...</div><div style="font-size:14px; color:#888; margin-top:10px;">Fetching rosters and syncing clock...</div></div>
 
     <div class="container" style="display:none;" id="main-ui">
-        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
             <button onclick="window.location.href='index.html'" style="background: #34495e; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">← Dashboard</button>
-            <!-- LINEUP EDITOR BUTTON -->
             <button id="btn-edit-lineups" onclick="openLineupEditor()" style="background: #27ae60; color:#fff; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; font-weight:bold; display:none;">📋 Manage Starting Lineups</button>
         </div>
         
@@ -60,9 +66,9 @@
             <div class="team-score-wrapper" style="flex-direction:row-reverse;"><img id="scoreB-logo" class="scoreboard-logo"><div id="scoreB-name">Team B</div></div>
         </div>
 
-        <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px;">
-            <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px;">
-            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:0 20px; border-radius:5px; cursor:pointer;">Post to App</button>
+        <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px; min-width:200px;">
+            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post to App</button>
         </div>
 
         <button id="export-btn" onclick="exportImage()" style="display:none; width:100%; margin-top:20px; background:#3498db; color:#fff; padding:15px; font-size:18px; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">📥 Download Match Graphic</button>
@@ -77,11 +83,13 @@
             <div class="team-column" id="colA">
                 <h3>Team A Stats</h3>
                 <div class="stat-row"><span>Possession (%)</span><div class="possession-control"><input type="number" id="posA" value="50" min="0" max="100" onchange="updatePossession('A')"></div></div>
+                <div style="margin-bottom:15px;"><button onclick="openSubModal('A')" style="background:#8e44ad; width:100%;">🔄 Make Substitution</button></div>
                 <div id="statsA-container"></div>
             </div>
             <div class="team-column" id="colB">
                 <h3>Team B Stats</h3>
                 <div class="stat-row"><span>Possession (%)</span><div class="possession-control"><input type="number" id="posB" value="50" min="0" max="100" onchange="updatePossession('B')"></div></div>
+                <div style="margin-bottom:15px;"><button onclick="openSubModal('B')" style="background:#8e44ad; width:100%;">🔄 Make Substitution</button></div>
                 <div id="statsB-container"></div>
             </div>
         </div>
@@ -91,20 +99,25 @@
     <div id="event-modal" class="modal"><div class="modal-content"><h2 id="ev-title">Record Event</h2><select id="ev-player"></select><input type="text" id="ev-min" placeholder="Minute (e.g. 45)"><button onclick="saveEvent()">Save Event</button><button style="background:#555; margin-top:10px;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button></div></div>
     <div id="motm-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0;">⭐ Assign MOTM ⭐</h2><p style="font-size:12px; color:#aaa;">The match is finished. Select Man of the Match.</p><select id="motm-select"></select><button onclick="confirmMOTM()">Confirm Full Time</button></div></div>
     
+    <div id="sub-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0;">Substitution</h2>
+            <label style="display:block; text-align:left;">Player Coming OFF <strong style="color:var(--red);">↓</strong></label><select id="sub-out-select"></select>
+            <label style="display:block; text-align:left;">Player Coming ON <strong style="color:var(--green);">↑</strong></label><select id="sub-in-select"></select>
+            <label style="display:block; text-align:left;">Minute</label><input type="text" id="sub-min-input" placeholder="e.g. 60">
+            <button onclick="confirmSub()" style="background:#8e44ad;">Confirm Sub</button>
+            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
+        </div>
+    </div>
+
     <!-- LINEUP EDITOR MODAL -->
     <div id="lineup-modal" class="modal">
-        <div class="modal-content" style="width:600px;">
+        <div class="modal-content" style="width:95%; max-width:600px;">
             <h2 style="margin-top:0;">📋 Manage Starting Lineups</h2>
             <p style="font-size:12px; color:#555;">Select up to 9 Starters per team. The rest will be benched.</p>
             <div style="display:flex; gap:20px; text-align:left;">
-                <div style="flex:1;">
-                    <h3 id="le-teamA" style="color:var(--primary); border-bottom:2px solid #ccc;">Team A</h3>
-                    <div id="le-listA"></div>
-                </div>
-                <div style="flex:1;">
-                    <h3 id="le-teamB" style="color:var(--primary); border-bottom:2px solid #ccc;">Team B</h3>
-                    <div id="le-listB"></div>
-                </div>
+                <div style="flex:1;"><h3 id="le-teamA" style="color:var(--primary); border-bottom:2px solid #ccc;">Team A</h3><div id="le-listA"></div></div>
+                <div style="flex:1;"><h3 id="le-teamB" style="color:var(--primary); border-bottom:2px solid #ccc;">Team B</h3><div id="le-listB"></div></div>
             </div>
             <button onclick="saveLineups()" style="margin-top:20px;">Save Lineups to Database</button>
             <button style="background:#555; margin-top:5px;" onclick="document.getElementById('lineup-modal').style.display='none'">Cancel</button>
@@ -124,7 +137,7 @@
         const auth = getAuth(app); const db = getFirestore(app);
 
         const matchId = new URLSearchParams(window.location.search).get('id');
-        let matchData = null; let matchSeconds = 0; let timerInterval = null; let isClockRunning = false; let pendingStat = null;
+        let matchData = null; let matchSeconds = 0; let timerInterval = null; let isClockRunning = false; let pendingStat = null; let currentSubTeam = null;
         let isKnockout = false;
 
         if(!matchId) { alert("No match ID found!"); window.location.href='index.html'; }
@@ -139,6 +152,7 @@
 
                 matchData.scoreA = matchData.scoreA || 0; matchData.scoreB = matchData.scoreB || 0;
                 if(!matchData.penalties) matchData.penalties = {A:0, B:0};
+                if(!matchData.subsEvents) matchData.subsEvents = {A:[], B:[]};
                 ['A', 'B'].forEach(t => {
                     if(!matchData.stats[t].scorers) matchData.stats[t].scorers =[];
                     if(!matchData.stats[t].yellows) matchData.stats[t].yellows =[];
@@ -150,9 +164,8 @@
                 
                 const btn = document.getElementById('phase-btn');
                 if(matchData.status === 'Pending') { document.getElementById('btn-edit-lineups').style.display='block'; }
-                if(matchData.status === '1H' || matchData.status === 'HT' || matchData.status === '2H') { document.getElementById('btn-edit-lineups').style.display='none'; }
+                if(['1H', 'HT', '2H', 'FT', 'ET1', 'ET HT', 'ET2', 'PEN', 'FINISHED'].includes(matchData.status)) { document.getElementById('btn-edit-lineups').style.display='none'; }
                 
-                // Button Labels based on Phase
                 if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download HT Graphic'; }
                 if(matchData.status === '2H') { btn.innerText = isKnockout ? "End 2nd Half" : "End Match"; document.getElementById('export-btn').style.display='none'; }
                 if(matchData.status === 'FT') { 
@@ -193,16 +206,12 @@
                     let isBench = i >= 9 ? 'selected' : '';
                     html += `<div class="lineup-edit-row">
                                 <span style="font-weight:bold;">${p.name} <span style="color:#888; font-size:12px;">(${p.pos})</span></span>
-                                <select id="le-${team}-${i}">
-                                    <option value="Starter" ${isStarter}>Starter</option>
-                                    <option value="Bench" ${isBench}>Bench</option>
-                                </select>
+                                <select id="le-${team}-${i}"><option value="Starter" ${isStarter}>Starter</option><option value="Bench" ${isBench}>Bench</option></select>
                              </div>`;
                 });
                 return html;
             }
-            document.getElementById('le-listA').innerHTML = buildList('A');
-            document.getElementById('le-listB').innerHTML = buildList('B');
+            document.getElementById('le-listA').innerHTML = buildList('A'); document.getElementById('le-listB').innerHTML = buildList('B');
             document.getElementById('lineup-modal').style.display='flex';
         }
 
@@ -210,9 +219,7 @@
             const getNewArrays = (team) => {
                 let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
                 let starts = []; let subs =[];
-                fullRoster.forEach((p, i) => {
-                    if(document.getElementById(`le-${team}-${i}`).value === 'Starter') starts.push(p); else subs.push(p);
-                });
+                fullRoster.forEach((p, i) => { if(document.getElementById(`le-${team}-${i}`).value === 'Starter') starts.push(p); else subs.push(p); });
                 return { starters: starts, subs: subs };
             }
             let newA = getNewArrays('A'); let newB = getNewArrays('B');
@@ -221,8 +228,43 @@
             matchData.lineupA.starters = newA.starters; matchData.lineupA.subs = newA.subs;
             matchData.lineupB.starters = newB.starters; matchData.lineupB.subs = newB.subs;
             await updateDoc(doc(db, "matches", matchId), { lineupA: matchData.lineupA, lineupB: matchData.lineupB });
-            document.getElementById('lineup-modal').style.display='none';
-            alert("Lineups updated!");
+            document.getElementById('lineup-modal').style.display='none'; alert("Lineups updated!");
+        }
+
+        // --- SUBSTITUTIONS ---
+        const getActivePlayers = (team) => {
+            let active = matchData[`lineup${team}`].starters.map(s => s.name);
+            matchData.subsEvents[team].forEach(e => {
+                const idx = active.findIndex(n => n.trim() === e.out.trim());
+                if (idx !== -1) active.splice(idx, 1);
+                active.push(e.in);
+            });
+            return active;
+        }
+
+        window.openSubModal = (team) => {
+            currentSubTeam = team;
+            let offSel = document.getElementById('sub-out-select'); offSel.innerHTML = '';
+            getActivePlayers(team).forEach(p => { if(p) offSel.add(new Option(p, p)); });
+            
+            let inSel = document.getElementById('sub-in-select'); inSel.innerHTML = '';
+            let all = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs].map(s=>s.name);
+            all.filter(p => !getActivePlayers(team).includes(p)).forEach(p => { if(p) inSel.add(new Option(p, p)); });
+            
+            document.getElementById('sub-min-input').value = Math.max(1, Math.ceil(matchSeconds/60));
+            document.getElementById('sub-modal').style.display = 'flex';
+        }
+
+        window.confirmSub = async () => {
+            let pOut = document.getElementById('sub-out-select').value;
+            let pIn = document.getElementById('sub-in-select').value;
+            let min = document.getElementById('sub-min-input').value || Math.max(1, Math.ceil(matchSeconds/60));
+            if(!pOut || !pIn) return alert("Select both players.");
+            
+            matchData.subsEvents[currentSubTeam].push({ out: pOut, in: pIn, minute: min });
+            await updateDoc(doc(db, "matches", matchId), { subsEvents: matchData.subsEvents });
+            document.getElementById('sub-modal').style.display = 'none';
+            alert("Sub Recorded!");
         }
 
         // --- CLOCK & PHASE ENGINE ---
@@ -294,7 +336,7 @@
 
         window.confirmMOTM = async () => {
             matchData.motm = document.getElementById('motm-select').value;
-            matchData.status = 'FINISHED'; // Absolute end state
+            matchData.status = 'FINISHED'; 
             document.getElementById('motm-modal').style.display='none';
             document.getElementById('clock-controls').style.display='none'; 
             document.getElementById('export-btn').style.display='block'; document.getElementById('export-btn').innerText='📥 Download Final Graphic';
@@ -354,7 +396,7 @@
             const m = document.getElementById('ev-min').value || "";
             
             if(key === 'goals') { matchData.stats[team].scorers.push({name: p, minute: m}); matchData[`score${team}`]++; } 
-            else { matchData.stats[team][key].push(p); }
+            else { matchData.stats[team][key].push({name: p, minute: m}); } // Save cards as object with minute
             
             document.getElementById('event-modal').style.display='none'; updateStatDisplays();
             await updateDoc(doc(db, "matches", matchId), { stats: matchData.stats, scoreA: matchData.scoreA, scoreB: matchData.scoreB });
