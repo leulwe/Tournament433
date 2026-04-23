@@ -73,7 +73,7 @@
 
         <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px; flex-wrap:wrap;">
             <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px; min-width:200px;">
-            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post</button>
+            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post to App</button>
         </div>
 
         <div id="export-controls" style="display:none; margin-top:20px; flex-wrap:wrap; gap:10px; justify-content:center; background:#ecf0f1; padding:15px; border-radius:8px; border:1px solid #bdc3c7;">
@@ -140,12 +140,24 @@
 
     <!-- LINEUP EDITOR MODAL -->
     <div id="lineup-modal" class="modal">
-        <div class="modal-content" style="width:95%; max-width:600px;">
+        <div class="modal-content" style="width:95%; max-width:700px;">
             <h2 style="margin-top:0;">📋 Manage Starting Lineups</h2>
-            <p style="font-size:12px; color:#555;">Select up to 9 Starters per team.</p>
-            <div style="display:flex; gap:20px; text-align:left; flex-direction:column;">
-                <div style="flex:1;"><h3 id="le-teamA" style="color:var(--primary); border-bottom:2px solid #ccc;">Team A</h3><div id="le-listA"></div></div>
-                <div style="flex:1;"><h3 id="le-teamB" style="color:var(--primary); border-bottom:2px solid #ccc;">Team B</h3><div id="le-listB"></div></div>
+            <p style="font-size:12px; color:#555;">Set formation and select up to 9 Starters.</p>
+            <div style="display:flex; gap:20px; text-align:left; flex-direction:column; overflow-y:auto; max-height:60vh;">
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #ccc; padding-bottom:5px;">
+                        <h3 id="le-teamA" style="color:var(--primary); margin:0;">Team A</h3>
+                        <select id="le-form-A" style="width:120px; margin:0; padding:5px;"><option value="4-4-2">4-4-2</option><option value="4-3-3">4-3-3</option><option value="4-2-3-1">4-2-3-1</option><option value="3-5-2">3-5-2</option><option value="3-4-3">3-4-3</option><option value="5-3-2">5-3-2</option><option value="4-1-4-1">4-1-4-1</option></select>
+                    </div>
+                    <div id="le-listA" style="margin-top:10px;"></div>
+                </div>
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #ccc; padding-bottom:5px;">
+                        <h3 id="le-teamB" style="color:var(--primary); margin:0;">Team B</h3>
+                        <select id="le-form-B" style="width:120px; margin:0; padding:5px;"><option value="4-4-2">4-4-2</option><option value="4-3-3">4-3-3</option><option value="4-2-3-1">4-2-3-1</option><option value="3-5-2">3-5-2</option><option value="3-4-3">3-4-3</option><option value="5-3-2">5-3-2</option><option value="4-1-4-1">4-1-4-1</option></select>
+                    </div>
+                    <div id="le-listB" style="margin-top:10px;"></div>
+                </div>
             </div>
             <button onclick="saveLineups()" style="margin-top:20px;">Save Lineups to Database</button>
             <button style="background:#555; margin-top:5px;" onclick="document.getElementById('lineup-modal').style.display='none'">Cancel</button>
@@ -192,7 +204,8 @@
                     matchData.stats[t].possession = matchData.stats[t].possession || 50;
                     matchData.stats[t].fouls = matchData.stats[t].fouls || 0;
                     matchData.stats[t].corners = matchData.stats[t].corners || 0;
-                    matchData[`lineup${t}`] = matchData[`lineup${t}`] || {starters:[], subs:[]};
+                    matchData[`lineup${t}`] = matchData[`lineup${t}`] || {formation: '4-3-3', starters:[], subs:[]};
+                    matchData[`lineup${t}`].formation = matchData[`lineup${t}`].formation || '4-3-3';
                     matchData[`lineup${t}`].starters = matchData[`lineup${t}`].starters ||[];
                     matchData[`lineup${t}`].subs = matchData[`lineup${t}`].subs ||[];
                 });
@@ -252,6 +265,9 @@
             document.getElementById('le-teamA').innerText = matchData.teamA.name;
             document.getElementById('le-teamB').innerText = matchData.teamB.name;
             
+            document.getElementById('le-form-A').value = matchData.lineupA.formation || '4-3-3';
+            document.getElementById('le-form-B').value = matchData.lineupB.formation || '4-3-3';
+            
             const buildList = (team) => {
                 let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
                 let html = '';
@@ -275,13 +291,13 @@
                     let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
                     let starts = []; let subs =[];
                     fullRoster.forEach((p, i) => { if(document.getElementById(`le-${team}-${i}`).value === 'Starter') starts.push(p); else subs.push(p); });
-                    return { starters: starts, subs: subs };
+                    return { starters: starts, subs: subs, formation: document.getElementById(`le-form-${team}`).value };
                 }
                 let newA = getNewArrays('A'); let newB = getNewArrays('B');
-                if(newA.starters.length > 9 || newB.starters.length > 9) return alert("Maximum 9 starters allowed per team!");
+                if(newA.starters.length > 11 || newB.starters.length > 11) return alert("Too many starters!");
                 
-                matchData.lineupA.starters = newA.starters; matchData.lineupA.subs = newA.subs;
-                matchData.lineupB.starters = newB.starters; matchData.lineupB.subs = newB.subs;
+                matchData.lineupA.formation = newA.formation; matchData.lineupA.starters = newA.starters; matchData.lineupA.subs = newA.subs;
+                matchData.lineupB.formation = newB.formation; matchData.lineupB.starters = newB.starters; matchData.lineupB.subs = newB.subs;
                 await updateDoc(doc(db, "matches", matchId), { lineupA: matchData.lineupA, lineupB: matchData.lineupB });
                 document.getElementById('lineup-modal').style.display='none'; alert("Lineups updated!");
             } catch(e) { console.error(e); alert("Failed to save lineup: " + e.message); }
@@ -333,7 +349,6 @@
                 matchData.status = '1H'; 
                 document.getElementById('match-phase-badge').innerText='1H'; 
                 document.getElementById('btn-edit-lineups').style.display='none';
-                document.getElementById('export-controls').style.display='flex';
                 await updateDoc(doc(db, "matches", matchId), { status: '1H' });
             }
 
@@ -365,7 +380,6 @@
                     case '2H':
                         if(!confirm("End the 2nd Half?")) return;
                         matchData.status = 'FT'; matchSeconds = 5400; 
-                        // NO EXTRA TIME IF ONE TEAM IS WINNING
                         if(isKnockout && matchData.scoreA === matchData.scoreB) { btn.innerText = "Start Extra Time"; document.getElementById('clock-controls').style.display='flex'; }
                         else { triggerEndMatch(); return; }
                         break;
@@ -418,8 +432,8 @@
 
                             if(!snap.empty) {
                                 let nextMatchDoc = snap.docs[0]; let nextMatch = nextMatchDoc.data();
-                                if(isTeamA) { nextMatch.teamA = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupA = {starters: cleanWinnerRoster.slice(0,9), subs: cleanWinnerRoster.slice(9)}; }
-                                else { nextMatch.teamB = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupB = {starters: cleanWinnerRoster.slice(0,9), subs: cleanWinnerRoster.slice(9)}; }
+                                if(isTeamA) { nextMatch.teamA = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupA = {formation:'4-3-3', starters: cleanWinnerRoster.slice(0,9), subs: cleanWinnerRoster.slice(9)}; }
+                                else { nextMatch.teamB = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupB = {formation:'4-3-3', starters: cleanWinnerRoster.slice(0,9), subs: cleanWinnerRoster.slice(9)}; }
                                 await updateDoc(doc(db, "matches", nextMatchDoc.id), nextMatch);
                             } else {
                                 let newMatch = {
@@ -428,8 +442,8 @@
                                     teamB: !isTeamA ? {id: winner.id, name: winner.name, logo: winner.logo||""} : { id: 'TBD', name: 'TBD', logo: '' },
                                     timeInfo: "TBD", status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                                     stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                                    lineupA: { starters: isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: isTeamA ? cleanWinnerRoster.slice(9) :[] },
-                                    lineupB: { starters: !isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
+                                    lineupA: { formation:'4-3-3', starters: isTeamA ? cleanWinnerRoster.slice(0,9) :[], subs: isTeamA ? cleanWinnerRoster.slice(9) :[] },
+                                    lineupB: { formation:'4-3-3', starters: !isTeamA ? cleanWinnerRoster.slice(0,9) :[], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
                                     ratings: {}, motm: null, timestamp: new Date()
                                 };
                                 await addDoc(collection(db, "matches"), newMatch);
