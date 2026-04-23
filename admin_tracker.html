@@ -121,7 +121,7 @@
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label>
             <input type="text" id="ev-min" placeholder="Minute (e.g. 45)">
             <button onclick="saveEvent()">Save Event</button>
-            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
+            <button style="background:#555;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
         </div>
     </div>
     
@@ -134,7 +134,7 @@
             <label style="display:block; text-align:left;">Player Coming ON <strong style="color:var(--green);">↑</strong></label><select id="sub-in-select"></select>
             <label style="display:block; text-align:left;">Minute</label><input type="text" id="sub-min-input" placeholder="e.g. 60">
             <button onclick="confirmSub()" style="background:#8e44ad;">Confirm Sub</button>
-            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
+            <button style="background:#555;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
         </div>
     </div>
 
@@ -239,7 +239,7 @@
         loadMatch();
 
         function updateGraphicButtons() {
-            document.getElementById('export-controls').style.display = ['HT','FT','ET HT','FINISHED'].includes(matchData.status) ? 'flex' : 'none';
+            document.getElementById('export-controls').style.display =['HT','FT','ET HT','FINISHED'].includes(matchData.status) ? 'flex' : 'none';
             document.getElementById('btn-export-ht').style.display = matchData.status === 'HT' ? 'block' : 'none';
             document.getElementById('btn-export-ft').style.display = matchData.status === 'FT' ? 'block' : 'none';
             document.getElementById('btn-export-et').style.display = matchData.status === 'ET HT' ? 'block' : 'none';
@@ -272,7 +272,7 @@
             try {
                 const getNewArrays = (team) => {
                     let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
-                    let starts = []; let subs =[];
+                    let starts =[]; let subs =[];
                     fullRoster.forEach((p, i) => { if(document.getElementById(`le-${team}-${i}`).value === 'Starter') starts.push(p); else subs.push(p); });
                     return { starters: starts, subs: subs };
                 }
@@ -395,9 +395,9 @@
             // Auto Advance Knockout Bracket (Only if official and has a node)
             if (matchData.isOfficial && matchData.bracketNode) {
                 let winner = null;
-                if(matchData.scoreA > matchData.scoreB) { winner = matchData.teamA; winner.roster = [...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
+                if(matchData.scoreA > matchData.scoreB) { winner = matchData.teamA; winner.roster =[...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
                 else if(matchData.scoreB > matchData.scoreA) { winner = matchData.teamB; winner.roster =[...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
-                else if(matchData.penalties.A > matchData.penalties.B) { winner = matchData.teamA; winner.roster =[...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
+                else if(matchData.penalties.A > matchData.penalties.B) { winner = matchData.teamA; winner.roster = [...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
                 else if(matchData.penalties.B > matchData.penalties.A) { winner = matchData.teamB; winner.roster =[...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
 
                 if(winner && matchData.bracketNode !== 'R0-M0' && matchData.bracketNode.includes('-M')) { 
@@ -410,8 +410,7 @@
                         const q = query(collection(db, "matches"), where("tournamentId", "==", matchData.tournamentId), where("bracketNode", "==", nextNodeId));
                         const snap = await getDocs(q);
                         
-                        // We MUST strip the image from the roster before saving to the NEXT match to avoid 1MB limits
-                        let cleanWinnerRoster = winner.roster.map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
+                        let cleanWinnerRoster = (winner.roster||[]).map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
 
                         if(!snap.empty) {
                             let nextMatchDoc = snap.docs[0]; let nextMatch = nextMatchDoc.data();
@@ -426,7 +425,7 @@
                                 timeInfo: "TBD", status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                                 stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
                                 lineupA: { starters: isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: isTeamA ? cleanWinnerRoster.slice(9) :[] },
-                                lineupB: { starters: !isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
+                                lineupB: { starters: !isTeamA ? cleanWinnerRoster.slice(0,9) :[], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
                                 ratings: {}, motm: null, timestamp: new Date()
                             };
                             await addDoc(collection(db, "matches"), newMatch);
