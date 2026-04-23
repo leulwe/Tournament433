@@ -93,7 +93,7 @@
         .pitch-row { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; flex-wrap:wrap;}
         .pitch-player { display: flex; flex-direction: column; align-items: center; position: relative; cursor: pointer; width: 65px; }
         .pitch-rating { position: absolute; top: -5px; right: -5px; background: var(--primary); color: #000; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; z-index: 2; }
-        .pitch-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; padding: 2px; object-fit: contain; }
+        .pitch-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; padding: 2px; object-fit: cover; }
         .pitch-name { color: #fff; margin-top: 5px; font-size: 11px; font-weight: bold; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 4px; text-align: center; max-width: 100%; white-space: nowrap; overflow:hidden; text-overflow:ellipsis;}
         .pitch-icons { font-size: 11px; margin-top: 3px; text-align: center; line-height: 1.2;}
 
@@ -134,9 +134,9 @@
             <h3 style="margin-top:0; color:#3498db; width:100%;">🛠️ Admin Platform</h3>
             <button onclick="document.getElementById('modal-tourney').style.display='flex'">1. Create Tournament</button>
             <button onclick="openTeamModal()">2. Register Squad</button>
-            <button onclick="openMatchModal()">3. Schedule Match (Friendly)</button>
+            <button onclick="openMatchModal()">3. Schedule Friendly</button>
             <button onclick="document.getElementById('modal-news').style.display='flex'">4. Post News</button>
-            <button onclick="logoutAdmin()" style="background:#e74c3c;">Log Out</button>
+            <button onclick="logoutAdmin()" class="del-btn">Log Out</button>
         </div>
 
         <div id="tab-matches" class="view-section active">
@@ -175,7 +175,7 @@
         </div>
     </div>
 
-    <!-- Match Center Deep View -->
+    <!-- Match Center -->
     <div id="match-center">
         <div class="mc-header">
             <button class="mc-back" onclick="closeMatchCenter()">← Back</button>
@@ -199,7 +199,7 @@
         <div class="mc-nav">
             <div class="mc-tab active" onclick="switchMcTab('overview', this)">Overview</div>
             <div class="mc-tab" onclick="switchMcTab('stats', this)">Stats</div>
-            <div class="mc-tab" onclick="switchMcTab('lineups', this)">Lineups (Rate)</div>
+            <div class="mc-tab" onclick="switchMcTab('lineups', this)">Lineups</div>
         </div>
 
         <div class="mc-content">
@@ -207,26 +207,28 @@
                 <div id="mc-motm-banner" style="display:none; text-align:center; background:var(--gold); color:#000; padding:15px; border-radius:8px; font-weight:bold; font-size:18px; margin-bottom:20px;"></div>
                 <div style="display:flex; gap:20px; flex-direction:column;">
                     <div><h4 style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">Match Timeline</h4>
-                        <p style="font-size:11px; color:#888; margin-top:0;">Goals ⚽ | Assists 🤝 | Subs 🔄 | Yellow 🟨 | Red 🟥</p>
                         <div id="mc-events-list"></div>
                     </div>
-                    <div><h4 style="border-bottom:1px solid #333; padding-bottom:5px;">Live Commentary</h4><div id="mc-commentary-list"><p style="color:#666; font-style:italic;">No updates yet.</p></div></div>
+                    <div><h4 style="border-bottom:1px solid #333; padding-bottom:5px;">Live Commentary</h4><div id="mc-commentary-list"></div></div>
                 </div>
             </div>
             <div id="mc-tab-stats" class="view-section"><div id="mc-stats-container"></div></div>
             <div id="mc-tab-lineups" class="view-section">
                 <p style="text-align:center; color:var(--primary); font-size:13px; margin-top:0;">Tap a player to view profile & rate performance!</p>
-                <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
-                    <button onclick="toggleLineups('A')" id="btn-show-a" style="flex:1; background:var(--primary); color:#000; border:none; padding:10px; font-weight:bold; border-radius:5px;">Team A</button>
-                    <button onclick="toggleLineups('B')" id="btn-show-b" style="flex:1; background:#333; color:#fff; border:none; padding:10px; font-weight:bold; border-radius:5px;">Team B</button>
+                <button onclick="downloadLineupImage()" style="width:100%; background:#3498db; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:15px;">📥 Download Pitch PNG</button>
+                <div id="lineups-export-area">
+                    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
+                        <button onclick="toggleLineups('A')" id="btn-show-a" style="flex:1; background:var(--primary); color:#000; border:none; padding:10px; font-weight:bold; border-radius:5px;">Team A</button>
+                        <button onclick="toggleLineups('B')" id="btn-show-b" style="flex:1; background:#333; color:#fff; border:none; padding:10px; font-weight:bold; border-radius:5px;">Team B</button>
+                    </div>
+                    <div id="lineups-team-a"></div>
+                    <div id="lineups-team-b" style="display:none;"></div>
                 </div>
-                <div id="lineups-team-a"></div>
-                <div id="lineups-team-b" style="display:none;"></div>
             </div>
         </div>
     </div>
 
-    <!-- 🛡️ Full Player Profile & Rating Modal -->
+    <!-- 🛡️ Player Profile & Rating Modal -->
     <div id="player-profile-modal" class="modal">
         <div class="modal-content" style="width: 95%; max-width: 450px;">
             <h2 id="pp-name" style="color:var(--primary); margin-top:0; margin-bottom:5px;">Player Name</h2>
@@ -253,7 +255,7 @@
                 </div>
                 <button id="submit-rating-btn" onclick="submitRating()">Submit Fan Rating</button>
             </div>
-            <button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Close Profile</button>
+            <button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Close</button>
         </div>
     </div>
 
@@ -267,37 +269,17 @@
         <div class="content"><p style="text-align:center; color:#aaa; font-size:12px; margin-top:0;">Tap player for stats.</p><div id="tp-roster" style="background:var(--bg-panel); border-radius:8px; padding:10px;"></div></div>
     </div>
 
-    <!-- Modals for CRUD -->
-    <div id="login-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0;">Admin Login</h2><input type="email" id="adm-email" placeholder="Email"><input type="password" id="adm-pass" placeholder="Password"><button onclick="login()">Log In</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
-    <div id="modal-tourney" class="modal"><div class="modal-content"><h2>Create Tournament</h2><input type="text" id="t-name" placeholder="Name (e.g. Freshman 2026)"><select id="t-type"><option value="Group Stage">Group Stage</option><option value="Knockout">Knockout Phase</option></select><div id="t-size-box" style="display:none;"><select id="t-size"><option value="4">4 Teams (Semi-Finals)</option><option value="8">8 Teams (Quarter-Finals)</option><option value="16" selected>16 Teams (R16)</option><option value="32">32 Teams (R32)</option></select></div><button onclick="createTournament()">Save</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button><hr style="border-color:#333; margin:15px 0;"><select id="t-del-sel"><option>Select to Delete...</option></select><button onclick="deleteTournament()" class="del-btn">Delete Selected Tournament</button></div></div>
+    <!-- Modals -->
+    <div id="login-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0;">Admin Login</h2><input type="email" id="adm-email" placeholder="Email"><input type="password" id="adm-pass" placeholder="Password"><button onclick="login()">Log In</button><button style="background:#333;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <div id="modal-tourney" class="modal"><div class="modal-content"><h2 style="margin-top:0;">Manage Tournament</h2><input type="text" id="t-name" placeholder="Name (e.g. Freshman 2026)"><select id="t-type"><option value="Group Stage">Group Stage</option><option value="Knockout">Knockout Phase</option></select><div id="t-size-box" style="display:none;"><select id="t-size"><option value="4">4 Teams (SF)</option><option value="8">8 Teams (QF)</option><option value="16" selected>16 Teams (R16)</option><option value="32">32 Teams (R32)</option></select></div><button onclick="createTournament()">Save</button><button style="background:#333;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button><hr style="border-color:#333; margin:15px 0;"><select id="t-del-sel"><option>Select to Delete...</option></select><button onclick="deleteTournament()" class="del-btn">Delete Selected Tournament</button></div></div>
     
-    <!-- DEDICATED TEAM REGISTER UI -->
-    <div id="modal-team" class="modal">
-        <div class="modal-content" style="max-width:800px; width:95%;">
-            <h2 id="team-modal-title">Register Squad</h2>
-            <select id="team-t-id"><option>Loading Tournaments...</option></select>
-            <div id="team-group-container" style="display:none;">
-                <select id="team-group"><option value="A">Group A</option><option value="B">Group B</option><option value="C">Group C</option><option value="D">Group D</option><option value="E">Group E</option><option value="F">Group F</option><option value="G">Group G</option><option value="H">Group H</option></select>
-            </div>
-            <input type="text" id="team-name" placeholder="Team Name">
-            <label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Team Logo</label>
-            <input type="file" id="team-logo" accept="image/*">
-            <label style="display:block; text-align:left; font-size:12px; margin-bottom:5px; margin-top:10px;">Roster (Add photo by clicking the circle)</label>
-            <div id="roster-builder" style="max-height:350px; overflow-y:auto; margin-bottom:10px; padding-right:5px; text-align:left;"></div>
-            <button onclick="addRosterRow()" style="background:#34495e; margin-bottom:15px; font-size:14px;">+ Add Player</button>
-            <button id="team-save-btn" onclick="saveTeam()">Register Team</button>
-            <button id="team-del-btn" onclick="deleteTeam()" class="del-btn" style="display:none;">Delete Team</button>
-            <button style="background:#333; color:#fff;" onclick="closeTeamModal()">Cancel</button>
-        </div>
-    </div>
+    <div id="modal-team" class="modal"><div class="modal-content" style="max-width:800px; width:95%;"><h2 id="team-modal-title">Register Squad</h2><select id="team-t-id"><option>Loading Tournaments...</option></select><div id="team-group-container" style="display:none;"><select id="team-group"><option value="A">Group A</option><option value="B">Group B</option><option value="C">Group C</option><option value="D">Group D</option><option value="E">Group E</option><option value="F">Group F</option><option value="G">Group G</option><option value="H">Group H</option></select></div><input type="text" id="team-name" placeholder="Team Name"><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Team Logo</label><input type="file" id="team-logo" accept="image/*"><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px; margin-top:10px;">Roster</label><div id="roster-builder" style="max-height:350px; overflow-y:auto; margin-bottom:10px; padding-right:5px; text-align:left;"></div><button onclick="addRosterRow()" style="background:#34495e; margin-bottom:15px; font-size:14px;">+ Add Player</button><button id="team-save-btn" onclick="saveTeam()">Register Team</button><button id="team-del-btn" onclick="deleteTeam()" class="del-btn" style="display:none;">Delete Team</button><button style="background:#333;" onclick="closeTeamModal()">Cancel</button></div></div>
     
-    <!-- Match Modal for FRIENDLIES (From home tab) -->
-    <div id="modal-match" class="modal"><div class="modal-content"><h2>Schedule Match (Friendly)</h2><select id="m-tourney" onchange="loadTeamsForMatch(this.value, 'm-teamA', 'm-teamB')"></select><select id="m-teamA"><option>Home Team</option></select><select id="m-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="m-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="m-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createMatch(false)">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <div id="modal-match" class="modal"><div class="modal-content"><h2 style="margin-top:0;">Schedule Match (Friendly)</h2><select id="m-tourney" onchange="loadTeamsForMatch(this.value, 'm-teamA', 'm-teamB')"></select><select id="m-teamA"><option>Home Team</option></select><select id="m-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="m-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="m-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createMatch(false)">Schedule Fixture</button><button style="background:#333;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
     
-    <!-- Match Modal for OFFICIAL BRACKET (From Bracket tab) -->
-    <div id="modal-bracket-match" class="modal"><div class="modal-content"><h2 id="bm-title">Schedule Official Match</h2><select id="bm-teamA"><option>Home Team</option></select><select id="bm-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="bm-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="bm-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createBracketMatch()">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <div id="modal-bracket-match" class="modal"><div class="modal-content"><h2 id="bm-title">Schedule Official Match</h2><select id="bm-teamA"><option>Home Team</option></select><select id="bm-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="bm-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="bm-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createBracketMatch()">Schedule Fixture</button><button style="background:#333;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
-    <div id="modal-news" class="modal"><div class="modal-content"><h2>Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><button onclick="postNews()">Post News</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <div id="modal-news" class="modal"><div class="modal-content"><h2 style="margin-top:0;">Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><button onclick="postNews()">Post News</button><button style="background:#333;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
     <!-- FIREBASE & LOGIC -->
     <script type="module">
@@ -319,8 +301,7 @@
             
             allMatches.forEach(m => {
                 if(m.status !== 'Pending') {
-                    if(m.motm) { initP(m.motm, "Tournament"); globalStats[m.motm].motms++; }
-                    ['A','B'].forEach(side => {
+                    if(m.motm) { initP(m.motm, "Tournament"); globalStats[m.motm].motms++; }['A','B'].forEach(side => {
                         let tName = m[`team${side}`]?.name || "Unknown";
                         m.stats?.[side]?.scorers?.forEach(s => { 
                             initP(s.name, tName); globalStats[s.name].goals++; globalStats[s.name].ga++;
@@ -339,11 +320,7 @@
                 arr.forEach((p, i) => html += `<tr onclick="openPlayerProfile('${p.name}', '${p.team}')"><td><b>${i+1}</b></td><td>${p.name} <div style="font-size:11px; color:#888;">${p.team}</div></td><td style="text-align:right; font-weight:bold; color:var(--primary);">${p[statKey]}</td></tr>`);
                 return html || `<tr><td colspan="3" style="text-align:center; color:#888;">No data yet</td></tr>`;
             };
-            document.getElementById('lb-ga').innerHTML = buildTable('ga');
-            document.getElementById('lb-goals').innerHTML = buildTable('goals');
-            document.getElementById('lb-assists').innerHTML = buildTable('assists');
-            document.getElementById('lb-yellows').innerHTML = buildTable('yellows');
-            document.getElementById('lb-reds').innerHTML = buildTable('reds');
+            document.getElementById('lb-ga').innerHTML = buildTable('ga'); document.getElementById('lb-goals').innerHTML = buildTable('goals'); document.getElementById('lb-assists').innerHTML = buildTable('assists'); document.getElementById('lb-yellows').innerHTML = buildTable('yellows'); document.getElementById('lb-reds').innerHTML = buildTable('reds');
             buildAutoBrackets();
         }
 
@@ -352,6 +329,7 @@
             let html = '';
             allTournaments.forEach(tourney => {
                 let tMatches = allMatches.filter(m => m.tournamentName === tourney.name && m.isOfficial);
+                
                 html += `<div class="bracket-box"><h4 style="margin-top:0; color:var(--primary); text-transform:uppercase;">${tourney.name}</h4>`;
                 
                 if(tourney.type.toLowerCase().includes('group')) {
@@ -387,7 +365,9 @@
                     });
                 } else {
                     let size = tourney.bracketSize || 4; let rounds = Math.log2(size);
+                    html += `${isAdmin ? `<button onclick="openBracketSetupModal('${tourney.id}')" style="background:#555; margin-bottom:10px;">+ Manage Bracket Matches</button>` : ''}`;
                     html += `<div class="bracket-container">`;
+                    
                     for(let r=0; r<rounds; r++) {
                         let matchesInRound = size / Math.pow(2, r+1);
                         html += `<div class="bracket-round">`;
@@ -398,7 +378,7 @@
                                 let pen = (match.status==='FINISHED' && (match.penalties?.A>0 || match.penalties?.B>0)) ? ` (P: ${match.penalties.A}-${match.penalties.B})` : '';
                                 html += `<div class="bracket-node" onclick="openMatchCenter('${match.id}')"><div class="b-team"><span class="b-name">${match.teamA?.name||'TBD'}</span><span class="b-score">${match.status==='Pending'?'-':match.scoreA}</span></div><div class="b-team"><span class="b-name">${match.teamB?.name||'TBD'}</span><span class="b-score">${match.status==='Pending'?'-':match.scoreB}</span></div><div style="font-size:10px; color:#888; text-align:center; margin-top:4px;">${match.status==='FINISHED'?'FT'+pen:(match.status==='Pending'?s:match.clock)}</div></div>`;
                             } else {
-                                html += `<div class="bracket-node" style="border-style:dashed;" ${isAdmin ? `onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')"` : ''}><div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div><div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>${isAdmin ? `<div style="font-size:10px; color:var(--primary); text-align:center; margin-top:4px;">+ Schedule</div>` : ''}</div>`;
+                                html += `<div class="bracket-node" style="border-style:dashed;"><div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div><div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div></div>`;
                             }
                         }
                         html += `</div>`;
@@ -413,11 +393,22 @@
         onAuthStateChanged(auth, (user) => { isAdmin = !!user; document.getElementById('admin-panel').style.display = isAdmin ? 'flex' : 'none'; if(window.currentMatch) document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none'; renderTeamsTab(); });
         window.login = () => signInWithEmailAndPassword(auth, document.getElementById('adm-email').value, document.getElementById('adm-pass').value).then(() => document.getElementById('login-modal').style.display='none').catch(e=>alert(e.message));
         window.logoutAdmin = () => signOut(auth);
+        
         const getBase64 = (file) => new Promise((resolve) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => resolve(r.result); });
         const compressImg = (file) => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); let w = img.width; let h = img.height; if(w > 100) { h *= 100/w; w = 100; } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); res(canvas.toDataURL('image/jpeg', 0.8)); } } });
         
-        window.createTournament = async () => { let size = document.getElementById('t-type').value === 'Knockout' ? parseInt(document.getElementById('t-size').value) : 0; await addDoc(collection(db, "tournaments"), { name: document.getElementById('t-name').value, type: document.getElementById('t-type').value, bracketSize: size, createdAt: new Date() }); document.getElementById('modal-tourney').style.display='none'; }
-        window.deleteTournament = async () => { let tId = document.getElementById('t-del-sel').value; if(!tId || tId==='Select to Delete...') return; if(confirm("Delete tournament and ALL associated teams/matches?")) { await deleteDoc(doc(db, "tournaments", tId)); document.getElementById('modal-tourney').style.display='none'; } }
+        window.createTournament = async () => { 
+            let size = document.getElementById('t-type').value === 'Knockout' ? parseInt(document.getElementById('t-size').value) : 0;
+            await addDoc(collection(db, "tournaments"), { name: document.getElementById('t-name').value, type: document.getElementById('t-type').value, bracketSize: size, createdAt: new Date() }); 
+            document.getElementById('modal-tourney').style.display='none'; 
+        }
+        window.deleteTournament = async () => {
+            let tId = document.getElementById('t-del-sel').value; if(!tId || tId==='Select to Delete...') return;
+            if(confirm("Delete this tournament and ALL its teams and matches?")) {
+                await deleteDoc(doc(db, "tournaments", tId));
+                document.getElementById('modal-tourney').style.display='none';
+            }
+        }
 
         const posOptions = `<option value="GK">GK</option><option value="CB">CB</option><option value="LB">LB</option><option value="RB">RB</option><option value="LWB">LWB</option><option value="RWB">RWB</option><option value="CDM">CDM</option><option value="CM">CM</option><option value="CAM">CAM</option><option value="LM">LM</option><option value="RM">RM</option><option value="LW">LW</option><option value="RW">RW</option><option value="CF">CF</option><option value="ST" selected>ST</option>`;
         window.addRosterRow = (name='', pos='ST', isCap=false, imgData=null) => {
@@ -437,7 +428,7 @@
                 t.roster.forEach(p => window.addRosterRow(p.name, p.pos, p.isCap, p.image)); document.getElementById('team-save-btn').innerText = "Update Team"; document.getElementById('team-del-btn').style.display = 'block';
             } else {
                 editingTeamId = null; document.getElementById('team-modal-title').innerText = "Register Squad"; document.getElementById('team-name').value = ''; document.getElementById('team-save-btn').innerText = "Register Team"; document.getElementById('team-del-btn').style.display = 'none';
-                let ev = new Event('change'); sel.dispatchEvent(ev); // Trigger group check
+                let ev = new Event('change'); sel.dispatchEvent(ev); 
                 for(let i=0;i<5;i++) window.addRosterRow();
             }
             document.getElementById('modal-team').style.display='flex'; 
@@ -456,18 +447,28 @@
             let roster = (await Promise.all(promises)).filter(p => p !== null);
             let data = { tournamentId: document.getElementById('team-t-id').value, group: document.getElementById('team-group').value, name: document.getElementById('team-name').value, roster: roster };
             if(logoBase64) data.logo = logoBase64;
-            if(editingTeamId) { await updateDoc(doc(db, "teams", editingTeamId), data); alert("Squad Updated!"); } else { if(!logoBase64) return alert("Please attach a logo for new teams."); await addDoc(collection(db, "teams"), data); alert("Squad Registered!"); }
+            if(editingTeamId) { await updateDoc(doc(db, "teams", editingTeamId), data); alert("Squad Updated!"); } 
+            else { if(!logoBase64) return alert("Please attach a logo for new teams."); await addDoc(collection(db, "teams"), data); alert("Squad Registered!"); }
             closeTeamModal();
         }
         window.deleteTeam = async () => { if(confirm("Permanently delete this team?")) { await deleteDoc(doc(db, "teams", editingTeamId)); closeTeamModal(); } }
 
-        window.openMatchModal = () => { const sel = document.getElementById('m-tourney'); sel.innerHTML = '<option>Select Tournament...</option>'; allTournaments.forEach(t => sel.add(new Option(t.name, t.id))); document.getElementById('modal-match').style.display='flex'; }
+        window.openMatchModal = () => { const sel = document.getElementById('m-tourney'); sel.innerHTML = '<option value="">Select Tournament...</option>'; allTournaments.forEach(t => sel.add(new Option(t.name, t.id))); document.getElementById('modal-match').style.display='flex'; }
         window.loadTeamsForMatch = (tId, selA_id, selB_id) => { const sA = document.getElementById(selA_id); const sB = document.getElementById(selB_id); sA.innerHTML = ''; sB.innerHTML = ''; allTeams.filter(t => t.tournamentId === tId).forEach(t => { sA.add(new Option(t.name, t.id)); sB.add(new Option(t.name, t.id)); }); }
-        window.openBracketMatchModal = (tId, nodeId) => { activeBracketNode = nodeId; activeBracketTourney = tId; let t = allTournaments.find(x => x.id === tId); document.getElementById('bm-title').innerText = `Schedule ${t.name} (Official)`; window.loadTeamsForMatch(tId, 'bm-teamA', 'bm-teamB'); document.getElementById('modal-bracket-match').style.display='flex'; }
+        
+        window.openBracketMatchModal = (tId, nodeId) => {
+            activeBracketNode = nodeId; activeBracketTourney = tId;
+            let t = allTournaments.find(x => x.id === tId);
+            document.getElementById('bm-title').innerText = `Schedule ${t.name} (Official)`;
+            window.loadTeamsForMatch(tId, 'bm-teamA', 'bm-teamB');
+            document.getElementById('modal-bracket-match').style.display='flex';
+        }
 
         window.createMatch = async (isOfficial = false) => {
-            let selA = isOfficial ? 'bm-teamA' : 'm-teamA'; let selB = isOfficial ? 'bm-teamB' : 'm-teamB'; let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
+            let selA = isOfficial ? 'bm-teamA' : 'm-teamA'; let selB = isOfficial ? 'bm-teamB' : 'm-teamB';
+            let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
             let timeStr = document.getElementById(isOfficial?'bm-weather-icon':'m-weather-icon').value + " " + document.getElementById(isOfficial?'bm-time':'m-time').value;
+            
             let tA = allTeams.find(t => t.id === document.getElementById(selA).value); let tB = allTeams.find(t => t.id === document.getElementById(selB).value); let tourney = allTournaments.find(t => t.id === selTourney);
             if(!tA || !tB || !tourney) return alert("Select valid Tournament and Teams!");
             
@@ -480,25 +481,38 @@
             });
             document.getElementById('modal-match').style.display='none'; document.getElementById('modal-bracket-match').style.display='none';
         }
-
+        window.createBracketMatch = () => window.createMatch(true);
         window.deleteCurrentMatch = async () => { if(confirm("Permanently delete this match?")) { await deleteDoc(doc(db, "matches", window.currentMatch.id)); window.closeMatchCenter(); } }
+        
         window.postNews = async () => { const file = document.getElementById('n-image').files[0]; let imgBase64 = file ? await getBase64(file) : null; await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, date: new Date().toLocaleDateString() }); document.getElementById('modal-news').style.display='none'; }
         window.deleteNews = async (id) => { if(confirm("Delete this post?")) { await deleteDoc(doc(db, "announcements", id)); } }
 
         // LISTENERS
         onSnapshot(query(collection(db, "tournaments")), snap => { allTournaments = snap.docs.map(d => ({id: d.id, ...d.data()})); let dSel = document.getElementById('t-del-sel'); dSel.innerHTML = '<option>Select to Delete...</option>'; allTournaments.forEach(t => dSel.add(new Option(t.name, t.id))); });
-        const renderTeamsTab = () => { let html = ''; allTeams.forEach(t => { html += `<div class="match-card" style="text-align:center; position:relative;">${isAdmin ? `<button style="position:absolute; top:10px; right:10px; background:#3498db; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;" onclick="openTeamModal('${t.id}')">Edit</button>` : ''}<div onclick="viewTeamProfile('${t.id}')"><img src="${t.logo}" style="width:50px; height:50px; border-radius:50%; background:#fff; object-fit:contain; margin-bottom:10px;"><div style="font-weight:bold; font-size:16px;">${t.name}</div></div></div>`; }); document.getElementById('teams-container').innerHTML = html; }
+        const renderTeamsTab = () => {
+            let html = ''; allTeams.forEach(t => {
+                html += `<div class="match-card" style="text-align:center; position:relative;">
+                            ${isAdmin ? `<div style="position:absolute; top:10px; right:10px;"><button style="background:#3498db; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;" onclick="openTeamModal('${t.id}')">Edit</button><button style="background:#c0392b; color:#fff; border:none; border-radius:4px; padding:5px; cursor:pointer;" onclick="deleteTeam('${t.id}')">🗑️</button></div>` : ''}
+                            <div onclick="viewTeamProfile('${t.id}')">
+                                <img src="${t.logo}" style="width:50px; height:50px; border-radius:50%; background:#fff; object-fit:contain; margin-bottom:10px;">
+                                <div style="font-weight:bold; font-size:16px;">${t.name}</div>
+                            </div>
+                         </div>`;
+            });
+            document.getElementById('teams-container').innerHTML = html;
+        }
         onSnapshot(query(collection(db, "teams")), snap => { allTeams = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTeamsTab(); });
         
-        onSnapshot(query(collection(db, "announcements"), orderBy("date", "desc")), snap => {
-            let html = ''; snap.forEach(d => { let n = d.data(); html += `<div style="background:var(--bg-panel); padding:15px; border-left:4px solid var(--primary); margin-bottom:15px; border-radius:4px;">${isAdmin?`<button class="del-btn" style="float:right; border:none; padding:5px; border-radius:3px; color:#fff; cursor:pointer;" onclick="deleteNews('${d.id}')">Delete</button>`:''}<div style="font-size:12px; color:var(--primary); margin-bottom:5px;">${n.date}</div><div style="font-weight:bold; font-size:18px; margin-bottom:8px;">${n.title}</div>${n.image ? `<img src="${n.image}" style="width:100%; border-radius:4px; margin-bottom:10px; max-height:400px; object-fit:contain; background:#000;">` : ''}<div style="color:var(--text-muted); font-size:14px; line-height:1.4; white-space:pre-wrap;">${n.body}</div></div>`; });
+        onSnapshot(query(collection(db, "announcements"), orderBy("timestamp", "desc")), snap => {
+            let html = ''; snap.forEach(d => { let n = d.data(); 
+                html += `<div style="background:var(--bg-panel); padding:15px; border-left:4px solid var(--primary); margin-bottom:15px; border-radius:4px;">${isAdmin?`<button class="del-btn" style="float:right; border:none; padding:5px; border-radius:3px; color:#fff; cursor:pointer;" onclick="deleteNews('${d.id}')">Delete</button>`:''}<div style="font-size:12px; color:var(--primary); margin-bottom:5px;">${n.date}</div><div style="font-weight:bold; font-size:18px; margin-bottom:8px;">${n.title}</div>${n.image ? `<img src="${n.image}" style="width:100%; border-radius:4px; margin-bottom:10px; max-height:400px; object-fit:contain; background:#000;">` : ''}<div style="color:var(--text-muted); font-size:14px; line-height:1.4; white-space:pre-wrap;">${n.body}</div></div>`; 
+            });
             document.getElementById('news-container').innerHTML = html;
         });
 
-        const getDisplayMinute = (status, rawSeconds) => { if(status === 'Pending') return 'UPCOMING'; if(['HT', 'FT', 'PEN', 'FINISHED'].includes(status)) return status; let min = Math.ceil(rawSeconds / 60) || 1; if(status === '1H' && min > 45) return `45+${min-45}'`; if(status === '2H' && min > 90) return `90+${min-90}'`; if(status === 'ET1' && min > 105) return `105+${min-105}'`; if(status === 'ET2' && min > 120) return `120+${min-120}'`; return min + "'"; }
-
         onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc")), snap => {
             allMatches = snap.docs.map(d => ({id: d.id, ...d.data()})); recalculateGlobalStats();
+            
             let html = ''; allMatches.filter(m => !m.isOfficial).forEach(m => {
                 let s = m.status === 'Pending' ? m.timeInfo?.split(' ')[1] || m.timeInfo : `${m.scoreA||0} - ${m.scoreB||0}`;
                 let penTxt = m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0)) ? `<span class="pen-score">(Pen: ${m.penalties.A} - ${m.penalties.B})</span>` : '';
@@ -515,13 +529,16 @@
         window.openPlayerProfile = (pName, teamName) => {
             let pStats = globalStats[pName] || {goals:0, assists:0, ga:0, yellows:0, reds:0, motms:0, ratingSum:0, ratingVotes:0};
             document.getElementById('pp-name').innerText = pName; document.getElementById('pp-team').innerText = teamName;
-            document.getElementById('pp-ga').innerText = pStats.ga; document.getElementById('pp-goals').innerText = pStats.goals; document.getElementById('pp-assists').innerText = pStats.assists; document.getElementById('pp-yellows').innerText = pStats.yellows; document.getElementById('pp-reds').innerText = pStats.reds; document.getElementById('pp-motms').innerText = pStats.motms;
-            let avg = pStats.ratingVotes > 0 ? (pStats.ratingSum / pStats.ratingVotes).toFixed(1) : '-'; document.getElementById('pp-avg-rating').innerText = avg;
+            document.getElementById('pp-ga').innerText = pStats.ga; document.getElementById('pp-goals').innerText = pStats.goals; document.getElementById('pp-assists').innerText = pStats.assists;
+            document.getElementById('pp-yellows').innerText = pStats.yellows; document.getElementById('pp-reds').innerText = pStats.reds; document.getElementById('pp-motms').innerText = pStats.motms;
+            let avg = pStats.ratingVotes > 0 ? (pStats.ratingSum / pStats.ratingVotes).toFixed(1) : '-';
+            document.getElementById('pp-avg-rating').innerText = avg;
             if(window.currentMatch &&['1H','HT','2H','FT','ET1','ET HT','ET2','PEN','FINISHED'].includes(window.currentMatch.status)) { document.getElementById('pp-rating-block').style.display='block'; window.setStar(5); } else { document.getElementById('pp-rating-block').style.display='none'; }
             document.getElementById('player-profile-modal').style.display='flex';
         }
 
         window.setStar = (num) => { selectedStarScore = num; let spans = document.getElementById('star-box').getElementsByTagName('span'); for(let i=0; i<5; i++) { spans[i].className = i < num ? 'active' : ''; } }
+        
         window.submitRating = async () => {
             let btn = document.getElementById('submit-rating-btn'); btn.innerText = "Submitting..."; btn.disabled = true;
             try { let scoreOutOf10 = selectedStarScore * 2; let pName = document.getElementById('pp-name').innerText; const docRef = doc(db, "matches", window.currentMatch.id); await updateDoc(docRef, { [`ratings.${pName}.sum`]: increment(scoreOutOf10),[`ratings.${pName}.votes`]: increment(1) }); document.getElementById('player-profile-modal').style.display='none'; alert("Rating saved!"); } catch(e) { console.error(e); alert("Error saving rating."); }
@@ -534,14 +551,6 @@
             let html = '<ul style="list-style:none; padding:0; margin:0;">';
             t.roster.forEach(p => html += `<li style="padding:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; cursor:pointer;" onclick="openPlayerProfile('${p.name}', '${t.name}')"><span style="color:var(--primary); font-weight:bold; width:45px;">${p.pos}</span><img src="${p.image||t.logo}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:10px;"><span style="font-weight:bold; font-size:16px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span></li>`);
             html += '</ul>'; document.getElementById('tp-roster').innerHTML = html; document.getElementById('team-profile').style.display = 'block';
-        }
-
-        const getPlayerIcons = (name, side, m) => {
-            let icons = '';
-            let goals = m.stats?.[side]?.scorers?.filter(s => s.name === name).length || 0; let assists = m.stats?.[side]?.scorers?.filter(s => s.assist === name).length || 0; let yellows = m.stats?.[side]?.yellows?.filter(s => (typeof s==='string'?s:s.name) === name).length || 0; let reds = m.stats?.[side]?.reds?.filter(s => (typeof s==='string'?s:s.name) === name).length || 0; let subIn = m.subsEvents?.[side]?.find(s => s.in === name); let subOut = m.subsEvents?.[side]?.find(s => s.out === name);
-            for(let i=0;i<goals;i++) icons += '⚽'; for(let i=0;i<assists;i++) icons += '🤝'; for(let i=0;i<yellows;i++) icons += '🟨'; for(let i=0;i<reds;i++) icons += '🟥';
-            if(subIn) icons += ` <span style="color:var(--primary);">↑${subIn.minute}'</span>`; if(subOut) icons += ` <span style="color:var(--red);">↓${subOut.minute}'</span>`;
-            return icons ? `<div class="pitch-icons">${icons}</div>` : '';
         }
 
         let mcListener = null;
@@ -574,18 +583,8 @@
                 document.getElementById('mc-stats-container').innerHTML = buildStat("Possession", m.stats?.A?.possession||50, m.stats?.B?.possession||50, true) + buildStat("Shots", m.stats?.A?.shots||0, m.stats?.B?.shots||0, false) + buildStat("Shots on Target", m.stats?.A?.shotsOnTarget||0, m.stats?.B?.shotsOnTarget||0, false) + buildStat("Fouls", m.stats?.A?.fouls||0, m.stats?.B?.fouls||0, false) + buildStat("Yellow Cards", m.stats?.A?.yellows?.length||0, m.stats?.B?.yellows?.length||0, false) + buildStat("Red Cards", m.stats?.A?.reds?.length||0, m.stats?.B?.reds?.length||0, false) + buildStat("Corners", m.stats?.A?.corners||0, m.stats?.B?.corners||0, false);
 
                 // PITCH LINEUPS
-                const categorize = (roster) => {
-                    let layout = { GK:[], DEF:[], MID:[], FWD:[] };
-                    roster.forEach(p => {
-                        let pos = (p.pos||'').toUpperCase();
-                        if(['GK'].includes(pos)) layout.GK.push(p);
-                        else if(['CB','LB','RB','DEF','LWB','RWB'].includes(pos)) layout.DEF.push(p);
-                        else if(['ST','CF','LW','RW','FWD'].includes(pos)) layout.FWD.push(p);
-                        else layout.MID.push(p);
-                    }); return layout;
-                }
-
                 const buildPitch = (lObj, tName, logo, side) => {
+                    const categorize = (roster) => { let layout = { GK:[], DEF:[], MID:[], FWD:[] }; roster.forEach(p => { let pos = (p.pos||'').toUpperCase(); if(['GK'].includes(pos)) layout.GK.push(p); else if(['CB','LB','RB','DEF','LWB','RWB'].includes(pos)) layout.DEF.push(p); else if(['ST','CF','LW','RW','FWD'].includes(pos)) layout.FWD.push(p); else layout.MID.push(p); }); return layout; }
                     let layout = categorize(lObj.starters);
                     const getRow = (arr) => {
                         let rowHtml = `<div class="pitch-row">`;
@@ -633,4 +632,4 @@
         }
     </script>
 </body>
-</html>
+</html
