@@ -73,7 +73,7 @@
 
         <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px; flex-wrap:wrap;">
             <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px; min-width:200px;">
-            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post</button>
+            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post to App</button>
         </div>
 
         <div id="export-controls" style="display:none; margin-top:20px; flex-wrap:wrap; gap:10px; justify-content:center; background:#ecf0f1; padding:15px; border-radius:8px; border:1px solid #bdc3c7;">
@@ -121,7 +121,7 @@
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label>
             <input type="text" id="ev-min" placeholder="Minute (e.g. 45)">
             <button onclick="saveEvent()">Save Event</button>
-            <button style="background:#555;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
+            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
         </div>
     </div>
     
@@ -134,7 +134,7 @@
             <label style="display:block; text-align:left;">Player Coming ON <strong style="color:var(--green);">↑</strong></label><select id="sub-in-select"></select>
             <label style="display:block; text-align:left;">Minute</label><input type="text" id="sub-min-input" placeholder="e.g. 60">
             <button onclick="confirmSub()" style="background:#8e44ad;">Confirm Sub</button>
-            <button style="background:#555;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
+            <button style="background:#555; margin-top:10px;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
         </div>
     </div>
 
@@ -181,12 +181,11 @@
                 matchData.scoreA = matchData.scoreA || 0; matchData.scoreB = matchData.scoreB || 0;
                 if(!matchData.penalties) matchData.penalties = {A:0, B:0};
                 if(!matchData.subsEvents) matchData.subsEvents = {A:[], B:[]};
-                matchData.stats = matchData.stats || {A:{}, B:{}};
-                ['A', 'B'].forEach(t => {
+                matchData.stats = matchData.stats || {A:{}, B:{}};['A', 'B'].forEach(t => {
                     matchData.stats[t] = matchData.stats[t] || {};
                     matchData.stats[t].scorers = matchData.stats[t].scorers ||[];
                     matchData.stats[t].yellows = matchData.stats[t].yellows || [];
-                    matchData.stats[t].reds = matchData.stats[t].reds || [];
+                    matchData.stats[t].reds = matchData.stats[t].reds ||[];
                     matchData.stats[t].shots = matchData.stats[t].shots || 0;
                     matchData.stats[t].shotsOnTarget = matchData.stats[t].shotsOnTarget || 0;
                     matchData.stats[t].possession = matchData.stats[t].possession || 50;
@@ -304,7 +303,7 @@
             getActivePlayers(team).forEach(p => { if(p) offSel.add(new Option(p, p)); });
             
             let inSel = document.getElementById('sub-in-select'); inSel.innerHTML = '';
-            let all =[...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs].map(s=>s.name);
+            let all = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs].map(s=>s.name);
             all.filter(p => !getActivePlayers(team).includes(p)).forEach(p => { if(p) inSel.add(new Option(p, p)); });
             
             document.getElementById('sub-min-input').value = Math.max(1, Math.ceil(matchSeconds/60));
@@ -333,6 +332,7 @@
                 matchData.status = '1H'; 
                 document.getElementById('match-phase-badge').innerText='1H'; 
                 document.getElementById('btn-edit-lineups').style.display='none';
+                document.getElementById('export-controls').style.display='flex';
                 await updateDoc(doc(db, "matches", matchId), { status: '1H' });
             }
 
@@ -395,25 +395,28 @@
             // Auto Advance Knockout Bracket (Only if official and has a node)
             if (matchData.isOfficial && matchData.bracketNode) {
                 let winner = null;
-                if(matchData.scoreA > matchData.scoreB) { winner = matchData.teamA; winner.roster =[...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
-                else if(matchData.scoreB > matchData.scoreA) { winner = matchData.teamB; winner.roster = [...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
+                if(matchData.scoreA > matchData.scoreB) { winner = matchData.teamA; winner.roster = [...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
+                else if(matchData.scoreB > matchData.scoreA) { winner = matchData.teamB; winner.roster =[...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
                 else if(matchData.penalties.A > matchData.penalties.B) { winner = matchData.teamA; winner.roster =[...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
                 else if(matchData.penalties.B > matchData.penalties.A) { winner = matchData.teamB; winner.roster =[...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
 
                 if(winner && matchData.bracketNode !== 'R0-M0' && matchData.bracketNode.includes('-M')) { 
                     try {
                         let parts = matchData.bracketNode.split('-');
-                        let r = parseInt(parts[0].substring(1)); let m = parseInt(parts[1].substring(1));
-                        let nextR = r + 1; let nextM = Math.floor(m / 2); let isTeamA = (m % 2 === 0);
+                        let r = parseInt(parts[0].substring(1)); let mNode = parseInt(parts[1].substring(1));
+                        let nextR = r + 1; let nextM = Math.floor(mNode / 2); let isTeamA = (mNode % 2 === 0);
                         let nextNodeId = `R${nextR}-M${nextM}`;
 
                         const q = query(collection(db, "matches"), where("tournamentId", "==", matchData.tournamentId), where("bracketNode", "==", nextNodeId));
                         const snap = await getDocs(q);
                         
+                        // We MUST strip the image from the roster before saving to the NEXT match to avoid 1MB limits
+                        let cleanWinnerRoster = winner.roster.map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
+
                         if(!snap.empty) {
                             let nextMatchDoc = snap.docs[0]; let nextMatch = nextMatchDoc.data();
-                            if(isTeamA) { nextMatch.teamA = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupA = {starters: winner.roster.slice(0,9), subs: winner.roster.slice(9)}; }
-                            else { nextMatch.teamB = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupB = {starters: winner.roster.slice(0,9), subs: winner.roster.slice(9)}; }
+                            if(isTeamA) { nextMatch.teamA = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupA = {starters: cleanWinnerRoster.slice(0,9), subs: cleanWinnerRoster.slice(9)}; }
+                            else { nextMatch.teamB = {id: winner.id, name: winner.name, logo: winner.logo||""}; nextMatch.lineupB = {starters: cleanWinnerRoster.slice(0,9), subs: cleanWinnerRoster.slice(9)}; }
                             await updateDoc(doc(db, "matches", nextMatchDoc.id), nextMatch);
                         } else {
                             let newMatch = {
@@ -422,8 +425,8 @@
                                 teamB: !isTeamA ? {id: winner.id, name: winner.name, logo: winner.logo||""} : { id: 'TBD', name: 'TBD', logo: '' },
                                 timeInfo: "TBD", status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                                 stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                                lineupA: { starters: isTeamA ? winner.roster.slice(0,9) :[], subs: isTeamA ? winner.roster.slice(9) :[] },
-                                lineupB: { starters: !isTeamA ? winner.roster.slice(0,9) :[], subs: !isTeamA ? winner.roster.slice(9) :[] },
+                                lineupA: { starters: isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: isTeamA ? cleanWinnerRoster.slice(9) :[] },
+                                lineupB: { starters: !isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
                                 ratings: {}, motm: null, timestamp: new Date()
                             };
                             await addDoc(collection(db, "matches"), newMatch);
@@ -439,16 +442,14 @@
         }
 
         window.confirmMOTM = async () => {
-            try {
-                matchData.motm = document.getElementById('motm-select').value;
-                matchData.status = 'FINISHED'; 
-                document.getElementById('motm-modal').style.display='none';
-                document.getElementById('clock-controls').style.display='none'; 
-                document.getElementById('match-phase-badge').innerText = 'FINISHED';
-                updateGraphicButtons();
-                await updateDoc(doc(db, "matches", matchId), { status: 'FINISHED', motm: matchData.motm, rawSeconds: matchSeconds });
-                alert("Match Ended! MOTM Saved and Bracket Updated.");
-            } catch(e) { alert("Failed to finalize match: " + e.message); }
+            matchData.motm = document.getElementById('motm-select').value;
+            matchData.status = 'FINISHED'; 
+            document.getElementById('motm-modal').style.display='none';
+            document.getElementById('clock-controls').style.display='none'; 
+            document.getElementById('match-phase-badge').innerText = 'FINISHED';
+            updateGraphicButtons();
+            await updateDoc(doc(db, "matches", matchId), { status: 'FINISHED', motm: matchData.motm, rawSeconds: matchSeconds });
+            alert("Match Ended! MOTM Saved and Bracket Updated.");
         }
 
         // --- STAT CONTROLS & EVENTS ---
@@ -570,7 +571,12 @@
 
             const area = document.getElementById('social-graphic-area').parentElement;
             area.style.left = '0'; area.style.zIndex = '-100'; area.style.position = 'fixed';
-            setTimeout(() => { html2canvas(document.getElementById('social-graphic-area'), { scale: 2, useCORS: true, backgroundColor: null }).then(c => { const l = document.createElement('a'); l.download = `${matchData.teamA.name}_vs_${matchData.teamB.name}_${title}.png`; l.href = c.toDataURL(); l.click(); area.style.left = '-9999px'; }); }, 500); 
+            setTimeout(() => {
+                html2canvas(document.getElementById('social-graphic-area'), { scale: 2, useCORS: true, backgroundColor: null }).then(c => {
+                    const l = document.createElement('a'); l.download = `${matchData.teamA.name}_vs_${matchData.teamB.name}_${title}.png`; l.href = c.toDataURL(); l.click();
+                    area.style.left = '-9999px';
+                });
+            }, 500); 
         }
     </script>
 </body>
