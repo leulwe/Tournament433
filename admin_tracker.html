@@ -73,7 +73,7 @@
 
         <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px; flex-wrap:wrap;">
             <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px; min-width:200px;">
-            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post</button>
+            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post to App</button>
         </div>
 
         <div id="export-controls" style="display:none; margin-top:20px; flex-wrap:wrap; gap:10px; justify-content:center; background:#ecf0f1; padding:15px; border-radius:8px; border:1px solid #bdc3c7;">
@@ -107,36 +107,9 @@
     </div>
 
     <!-- Modals -->
-    <div id="event-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="ev-title" style="margin-top:0;">Record Event</h2>
-            <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Player</label>
-            <select id="ev-player"></select>
-            
-            <div id="ev-assist-container" style="display:none;">
-                <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Assist By (Optional)</label>
-                <select id="ev-assist"></select>
-            </div>
-            
-            <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label>
-            <input type="text" id="ev-min" placeholder="Minute (e.g. 45)">
-            <button onclick="saveEvent()">Save Event</button>
-            <button style="background:#555;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button>
-        </div>
-    </div>
-    
+    <div id="event-modal" class="modal"><div class="modal-content"><h2 id="ev-title" style="margin-top:0;">Record Event</h2><label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Player</label><select id="ev-player"></select><div id="ev-assist-container" style="display:none;"><label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Assist By (Optional)</label><select id="ev-assist"></select></div><label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label><input type="text" id="ev-min" placeholder="Minute (e.g. 45)"><button onclick="saveEvent()">Save Event</button><button style="background:#555;" onclick="document.getElementById('event-modal').style.display='none'">Cancel</button></div></div>
     <div id="motm-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0;">⭐ Assign MOTM ⭐</h2><p style="font-size:12px; color:#aaa;">The match is finished. Select Man of the Match.</p><select id="motm-select"></select><button onclick="confirmMOTM()">Confirm Full Time</button></div></div>
-    
-    <div id="sub-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="margin-top:0;">Substitution</h2>
-            <label style="display:block; text-align:left;">Player Coming OFF <strong style="color:var(--red);">↓</strong></label><select id="sub-out-select"></select>
-            <label style="display:block; text-align:left;">Player Coming ON <strong style="color:var(--green);">↑</strong></label><select id="sub-in-select"></select>
-            <label style="display:block; text-align:left;">Minute</label><input type="text" id="sub-min-input" placeholder="e.g. 60">
-            <button onclick="confirmSub()" style="background:#8e44ad;">Confirm Sub</button>
-            <button style="background:#555;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button>
-        </div>
-    </div>
+    <div id="sub-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0;">Substitution</h2><label style="display:block; text-align:left;">Player Coming OFF <strong style="color:var(--red);">↓</strong></label><select id="sub-out-select"></select><label style="display:block; text-align:left;">Player Coming ON <strong style="color:var(--green);">↑</strong></label><select id="sub-in-select"></select><label style="display:block; text-align:left;">Minute</label><input type="text" id="sub-min-input" placeholder="e.g. 60"><button onclick="confirmSub()" style="background:#8e44ad;">Confirm Sub</button><button style="background:#555;" onclick="document.getElementById('sub-modal').style.display='none'">Cancel</button></div></div>
 
     <!-- LINEUP EDITOR MODAL -->
     <div id="lineup-modal" class="modal">
@@ -155,6 +128,7 @@
     <!-- Hidden Graphic Export Area -->
     <div style="position: absolute; left: -9999px; top: 0; width: 0; height: 0; overflow: hidden;"><div id="social-graphic-area" style="width: 800px; height: 800px; background: linear-gradient(135deg, #0d283c 0%, #0d283c 40%, #173b2c 100%); position: relative; font-family: 'Segoe UI', sans-serif;"><div id="graphic-header-text" style="background: var(--neon); color: #000; text-align: center; padding: 15px; font-size: 26px; font-weight: 900; letter-spacing: 2px;">MATCH RESULT</div><div style="text-align: center; margin-top: 35px; color: #fff; font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px;">🏆 <span id="graphic-tournament">R16 M1</span></div><div style="text-align: center; margin-top: 30px; font-size: 160px; font-weight: 900; color: #fff; line-height: 1;"><span id="graphic-scoreA">0</span> <span style="font-size: 140px; margin: 0 15px; position:relative; top:-10px;">:</span> <span id="graphic-scoreB">0</span></div><div id="graphic-pens" style="text-align:center; color:#ccc; font-size:24px; display:none; margin-top:-10px; font-weight:bold;">(Pen: 0 - 0)</div><div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding: 25px 40px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); height: 50px;"><div style="display: flex; align-items: center; gap: 18px;"><img id="graphic-logoA" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="graphic-nameA" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM A</div></div><div style="display: flex; align-items: center; gap: 18px; flex-direction: row-reverse;"><img id="graphic-logoB" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="graphic-nameB" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM B</div></div></div><div style="display: flex; justify-content: space-between; padding: 35px 40px; height: 100%; box-sizing: border-box;"><div id="graphic-eventsA" style="color: #fff; font-size: 20px; font-weight: bold; line-height: 1.8; flex: 1;"></div><div id="graphic-eventsB" style="color: #fff; font-size: 20px; font-weight: bold; line-height: 1.8; flex: 1; text-align: right;"></div></div></div></div>
 
+    <!-- FIREBASE APP ENGINE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
@@ -186,7 +160,7 @@
                     matchData.stats[t] = matchData.stats[t] || {};
                     matchData.stats[t].scorers = matchData.stats[t].scorers ||[];
                     matchData.stats[t].yellows = matchData.stats[t].yellows || [];
-                    matchData.stats[t].reds = matchData.stats[t].reds || [];
+                    matchData.stats[t].reds = matchData.stats[t].reds ||[];
                     matchData.stats[t].shots = matchData.stats[t].shots || 0;
                     matchData.stats[t].shotsOnTarget = matchData.stats[t].shotsOnTarget || 0;
                     matchData.stats[t].possession = matchData.stats[t].possession || 50;
@@ -210,7 +184,7 @@
                 updateGraphicButtons();
 
                 if(matchData.status === 'HT') { btn.innerText = "Start 2nd Half"; }
-                if(matchData.status === '2H') { btn.innerText = (isKnockout && matchData.scoreA === matchData.scoreB) ? "Start Extra Time" : "End Match"; }
+                if(matchData.status === '2H') { btn.innerText = (isKnockout && matchData.scoreA === matchData.scoreB) ? "End 2nd Half (Go to ET)" : "End Match"; }
                 if(matchData.status === 'FT') { 
                     if(isKnockout && matchData.scoreA === matchData.scoreB) { btn.innerText = "Start Extra Time"; }
                     else { document.getElementById('clock-controls').style.display='none'; }
@@ -393,13 +367,13 @@
         }
 
         async function triggerEndMatch() {
-            // Auto Advance Knockout Bracket (Only if official and has a node)
+            // Auto Advance Knockout Bracket
             if (matchData.isOfficial && matchData.bracketNode && matchData.bracketNode.startsWith('R')) {
                 let winner = null;
-                if(matchData.scoreA > matchData.scoreB) { winner = matchData.teamA; winner.roster =[...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
-                else if(matchData.scoreB > matchData.scoreA) { winner = matchData.teamB; winner.roster =[...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
-                else if(matchData.penalties.A > matchData.penalties.B) { winner = matchData.teamA; winner.roster =[...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
-                else if(matchData.penalties.B > matchData.penalties.A) { winner = matchData.teamB; winner.roster =[...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
+                if(matchData.scoreA > matchData.scoreB) { winner = matchData.teamA; winner.roster = [...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
+                else if(matchData.scoreB > matchData.scoreA) { winner = matchData.teamB; winner.roster = [...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
+                else if(matchData.penalties.A > matchData.penalties.B) { winner = matchData.teamA; winner.roster = [...matchData.lineupA.starters, ...matchData.lineupA.subs]; }
+                else if(matchData.penalties.B > matchData.penalties.A) { winner = matchData.teamB; winner.roster = [...matchData.lineupB.starters, ...matchData.lineupB.subs]; }
 
                 if(winner) { 
                     try {
@@ -428,8 +402,8 @@
                                     teamB: !isTeamA ? {id: winner.id, name: winner.name, logo: winner.logo||""} : { id: 'TBD', name: 'TBD', logo: '' },
                                     timeInfo: "TBD", status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                                     stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                                    lineupA: { starters: isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: isTeamA ? cleanWinnerRoster.slice(9) :[] },
-                                    lineupB: { starters: !isTeamA ? cleanWinnerRoster.slice(0,9) : [], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
+                                    lineupA: { starters: isTeamA ? cleanWinnerRoster.slice(0,9) :[], subs: isTeamA ? cleanWinnerRoster.slice(9) :[] },
+                                    lineupB: { starters: !isTeamA ? cleanWinnerRoster.slice(0,9) :[], subs: !isTeamA ? cleanWinnerRoster.slice(9) :[] },
                                     ratings: {}, motm: null, timestamp: new Date()
                                 };
                                 await addDoc(collection(db, "matches"), newMatch);
@@ -550,37 +524,6 @@
                 document.getElementById('comm-input').value = '';
                 alert("Commentary pushed live!");
             } catch(e) { alert("Failed to post commentary: " + e.message); }
-        }
-
-        // --- EXPORT MULTIPLE GRAPHICS ---
-        window.exportImage = (title) => {
-            document.getElementById('graphic-header-text').innerText = title;
-            document.getElementById('graphic-tournament').innerText = matchData.tournamentName + " " + matchData.tournamentPhase;
-            document.getElementById('graphic-scoreA').innerText = matchData.scoreA; document.getElementById('graphic-scoreB').innerText = matchData.scoreB;
-            document.getElementById('graphic-nameA').innerText = matchData.teamA.name; document.getElementById('graphic-logoA').src = matchData.teamA.logo;
-            document.getElementById('graphic-nameB').innerText = matchData.teamB.name; document.getElementById('graphic-logoB').src = matchData.teamB.logo;
-            
-            if((title === 'FINAL RESULT' || title === 'EXTRA TIME RESULT') && (matchData.penalties.A > 0 || matchData.penalties.B > 0)) {
-                document.getElementById('graphic-pens').style.display = 'block'; document.getElementById('graphic-pens').innerText = `(Pen: ${matchData.penalties.A} - ${matchData.penalties.B})`;
-            } else { document.getElementById('graphic-pens').style.display = 'none'; }
-
-            const buildEvents = (team, right) => {
-                let html = ''; let align = right ? 'justify-content: flex-end;' : 'justify-content: flex-start;';
-                matchData.stats[team].scorers.forEach(s => { 
-                    let astText = (s.assist && s.assist !== "None") ? `<br><span style="font-size:12px; color:#aaa;">Ast: ${s.assist}</span>` : '';
-                    html += `<div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; ${align}"> ${right ? `<span style="text-align:right;">${s.name.toUpperCase()} ${s.minute?"'"+s.minute:''}${astText}</span> <span>⚽</span>` : `<span>⚽</span> <span>${s.name.toUpperCase()} ${s.minute?"'"+s.minute:''}${astText}</span>`} </div>`; 
-                }); return html;
-            };
-            document.getElementById('graphic-eventsA').innerHTML = buildEvents('A', false); document.getElementById('graphic-eventsB').innerHTML = buildEvents('B', true);
-
-            const area = document.getElementById('social-graphic-area').parentElement;
-            area.style.left = '0'; area.style.zIndex = '-100'; area.style.position = 'fixed';
-            setTimeout(() => {
-                html2canvas(document.getElementById('social-graphic-area'), { scale: 2, useCORS: true, backgroundColor: null }).then(c => {
-                    const l = document.createElement('a'); l.download = `${matchData.teamA.name}_vs_${matchData.teamB.name}_${title}.png`; l.href = c.toDataURL(); l.click();
-                    area.style.left = '-9999px';
-                });
-            }, 500); 
         }
     </script>
 </body>
