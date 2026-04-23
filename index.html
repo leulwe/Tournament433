@@ -135,8 +135,8 @@
         <!-- Admin Bar -->
         <div class="admin-controls" id="admin-panel">
             <h3 style="margin-top:0; color:#3498db; width:100%;">🛠️ Admin Platform</h3>
-            <button onclick="document.getElementById('modal-tourney').style.display='flex'">1. Manage Tournament</button>
-            <button onclick="openTeamModal()">2. Manage Squad</button>
+            <button onclick="document.getElementById('modal-tourney').style.display='flex'">1. Create Tournament</button>
+            <button onclick="openTeamModal()">2. Register Squad</button>
             <button onclick="openMatchModal()">3. Schedule Match (Friendly)</button>
             <button onclick="document.getElementById('modal-news').style.display='flex'">4. Post News</button>
             <button onclick="logoutAdmin()" style="background:#e74c3c;">Log Out</button>
@@ -253,6 +253,7 @@
 
             <div id="pp-rating-block" style="display:none; border-top:1px solid #333; padding-top:15px;">
                 <h3 style="margin-bottom:5px; color:var(--gold);">Rate Today's Performance</h3>
+                <p style="font-size:12px; color:#aaa; margin-top:0; margin-bottom:15px;">Rate out of 5 stars (Saved as out of 10).</p>
                 <div class="stars-container" id="star-box">
                     <span onclick="setStar(1)">★</span><span onclick="setStar(2)">★</span><span onclick="setStar(3)">★</span><span onclick="setStar(4)">★</span><span onclick="setStar(5)">★</span>
                 </div>
@@ -289,6 +290,7 @@
         </div>
     </div>
     
+    <!-- DEDICATED TEAM REGISTER UI -->
     <div id="modal-team" class="modal">
         <div class="modal-content" style="max-width:800px; width:95%;">
             <h2 id="team-modal-title">Register Squad</h2>
@@ -308,8 +310,10 @@
         </div>
     </div>
     
+    <!-- Match Modal for FRIENDLIES (From home tab) -->
     <div id="modal-match" class="modal"><div class="modal-content"><h2>Schedule Match (Friendly)</h2><select id="m-tourney" onchange="loadTeamsForMatch(this.value, 'm-teamA', 'm-teamB')"></select><select id="m-teamA"><option>Home Team</option></select><select id="m-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="m-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="m-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createMatch(false)">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
     
+    <!-- Match Modal for OFFICIAL BRACKET (From Bracket tab) -->
     <div id="modal-bracket-match" class="modal"><div class="modal-content"><h2 id="bm-title">Schedule Official Match</h2><select id="bm-teamA"><option>Home Team</option></select><select id="bm-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="bm-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="bm-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createBracketMatch()">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
     <div id="modal-news" class="modal"><div class="modal-content"><h2>Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><button onclick="postNews()">Post News</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
@@ -318,7 +322,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, deleteDoc, increment, getDocs, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyAwQduFWIpvvC8kvfcG4b3MX_LkZegAUvk", authDomain: "assist-24272.firebaseapp.com", projectId: "assist-24272" });
         const auth = getAuth(app); const db = getFirestore(app);
@@ -440,10 +444,10 @@
                                     <div style="font-size:10px; color:#888; text-align:center; margin-top:4px;">${match.status==='FINISHED'?'FT'+pen:(match.status==='Pending'?s:match.clock)}</div>
                                 </div>`;
                             } else {
-                                html += `<div class="bracket-node" style="border-style:dashed;" onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')">
+                                html += `<div class="bracket-node" style="border-style:dashed;" ${isAdmin ? `onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')"` : ''}>
                                     <div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>
                                     <div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>
-                                    <div id="add-btn-${nodeId}" style="display:none; font-size:10px; color:var(--primary); text-align:center; margin-top:4px;">+ Schedule</div>
+                                    ${isAdmin ? `<div style="font-size:10px; color:var(--primary); text-align:center; margin-top:4px;">+ Schedule</div>` : ''}
                                 </div>`;
                             }
                         }
@@ -454,11 +458,6 @@
                 html += `</div>`;
             });
             document.getElementById('brackets-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No official tournaments found.</p>";
-            
-            // Post-render admin check for brackets
-            if(isAdmin) {
-                document.querySelectorAll('[id^="add-btn-"]').forEach(btn => btn.style.display = 'block');
-            }
         }
 
         onAuthStateChanged(auth, (user) => { 
@@ -473,7 +472,22 @@
         window.logoutAdmin = () => signOut(auth);
         
         const getBase64 = (file) => new Promise((resolve) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => resolve(r.result); });
-        const compressImg = (file) => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); let w = img.width; let h = img.height; if(w > 100) { h *= 100/w; w = 100; } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); res(canvas.toDataURL('image/jpeg', 0.8)); } } });
+        
+        // COMPRESS IMAGES TO AVOID FIREBASE 1MB CRASH
+        const compressImg = (file, maxW) => new Promise((res) => { 
+            const r = new FileReader(); r.readAsDataURL(file); 
+            r.onload = (e) => { 
+                const img = new Image(); img.src = e.target.result; 
+                img.onload = () => { 
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); 
+                    let w = img.width; let h = img.height; 
+                    if(w > maxW) { h *= maxW/w; w = maxW; } 
+                    canvas.width = w; canvas.height = h; 
+                    ctx.drawImage(img, 0, 0, w, h); 
+                    res(canvas.toDataURL('image/jpeg', 0.8)); 
+                } 
+            } 
+        });
         
         // Tourney
         window.createTournament = async () => { 
@@ -517,11 +531,14 @@
         window.closeTeamModal = () => { document.getElementById('modal-team').style.display='none'; editingTeamId = null; }
 
         window.saveTeam = async () => {
-            const file = document.getElementById('team-logo').files[0]; let logoBase64 = file ? await getBase64(file) : null;
+            document.getElementById('team-save-btn').innerText = "Saving...";
+            const file = document.getElementById('team-logo').files[0]; 
+            let logoBase64 = file ? await compressImg(file, 200) : null;
+            
             let promises = Array.from(document.querySelectorAll('.roster-row')).map(async row => {
                 let n = row.querySelector('.r-name').value.trim(); let p = row.querySelector('.r-pos').value; let c = row.querySelector('.r-cap').checked;
                 let fInput = row.querySelector('.r-img-input'); let imgData = row.dataset.img || null;
-                if(fInput.files.length > 0) imgData = await compressImg(fInput.files[0]);
+                if(fInput.files.length > 0) imgData = await compressImg(fInput.files[0], 100);
                 if(n) return { name: n, pos: p, isCap: c, image: imgData }; return null;
             });
             let roster = (await Promise.all(promises)).filter(p => p !== null);
@@ -530,6 +547,7 @@
 
             if(editingTeamId) { await updateDoc(doc(db, "teams", editingTeamId), data); alert("Squad Updated!"); } 
             else { if(!logoBase64) return alert("Please attach a logo for new teams."); await addDoc(collection(db, "teams"), data); alert("Squad Registered!"); }
+            document.getElementById('team-save-btn').innerText = "Register Team";
             closeTeamModal();
         }
         window.deleteTeam = async () => { if(confirm("Permanently delete this team?")) { await deleteDoc(doc(db, "teams", editingTeamId)); closeTeamModal(); } }
@@ -559,14 +577,16 @@
                 
                 if(!tA || !tB || !tourney) return alert("Select valid Tournament and Teams!");
 
-                let rosterA = tA.roster || []; let rosterB = tB.roster ||[];
+                // STRIP IMAGES FROM ROSTER SO MATCH DOCUMENT DOES NOT CRASH FIREBASE
+                let cleanRosterA = (tA.roster ||[]).map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
+                let cleanRosterB = (tB.roster ||[]).map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
 
                 await addDoc(collection(db, "matches"), {
                     tournamentId: tourney.id, tournamentName: tourney.name, tournamentPhase: tourney.type, isOfficial: isOfficial, bracketNode: isOfficial ? activeBracketNode : null,
                     teamA: { id: tA.id, name: tA.name, logo: tA.logo || "" }, teamB: { id: tB.id, name: tB.name, logo: tB.logo || "" },
                     timeInfo: timeStr, status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                     stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                    lineupA: { starters: rosterA.slice(0,9), subs: rosterA.slice(9) }, lineupB: { starters: rosterB.slice(0,9), subs: rosterB.slice(9) },
+                    lineupA: { starters: cleanRosterA.slice(0,9), subs: cleanRosterA.slice(9) }, lineupB: { starters: cleanRosterB.slice(0,9), subs: cleanRosterB.slice(9) },
                     ratings: {}, motm: null, timestamp: new Date()
                 });
                 document.getElementById('modal-match').style.display='none'; document.getElementById('modal-bracket-match').style.display='none';
@@ -575,11 +595,10 @@
             }
         }
 
-        window.createBracketMatch = () => window.createMatch(true);
         window.deleteCurrentMatch = async () => { if(confirm("Permanently delete this match?")) { await deleteDoc(doc(db, "matches", window.currentMatch.id)); window.closeMatchCenter(); } }
         
         window.postNews = async () => { 
-            const file = document.getElementById('n-image').files[0]; let imgBase64 = file ? await getBase64(file) : null;
+            const file = document.getElementById('n-image').files[0]; let imgBase64 = file ? await compressImg(file, 600) : null;
             await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, date: new Date().toLocaleDateString() }); 
             document.getElementById('modal-news').style.display='none'; 
         }
@@ -634,8 +653,8 @@
         onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc")), snap => {
             allMatches = snap.docs.map(d => ({id: d.id, ...d.data()})); recalculateGlobalStats();
             
-            // Show ALL matches in Home tab (Friendlies + Official)
-            let html = ''; allMatches.forEach(m => {
+            // Show Friendlies ONLY in Home tab
+            let html = ''; allMatches.filter(m => !m.isOfficial).forEach(m => {
                 let s = m.status === 'Pending' ? m.timeInfo.split(' ')[1] || m.timeInfo : `${m.scoreA||0} - ${m.scoreB||0}`;
                 let penTxt = m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0)) ? `<span class="pen-score">(Pen: ${m.penalties.A} - ${m.penalties.B})</span>` : '';
                 
@@ -643,8 +662,7 @@
                 let rAHtml = Array(rA).fill(`<div class="red-card-icon"></div>`).join(''); let rBHtml = Array(rB).fill(`<div class="red-card-icon"></div>`).join('');
 
                 html += `<div class="match-card" onclick="openMatchCenter('${m.id}')">
-                            ${m.isOfficial ? `<div style="position:absolute; top:5px; right:5px; background:var(--gold); color:#000; font-size:10px; padding:2px 5px; border-radius:3px; font-weight:bold;">OFFICIAL</div>` : ''}
-                            <div class="match-card-header">${m.tournamentName} • ${m.tournamentPhase}</div>
+                            <div class="match-card-header">${m.tournamentName} • Friendly</div>
                             <div class="match-row">
                                 <div class="team-info"><img src="${m.teamA.logo}" class="team-logo">${m.teamA.name} ${rAHtml}</div>
                                 <div style="text-align:center;"><div class="score-box">${s}</div>${penTxt}</div>
@@ -653,7 +671,7 @@
                             <div style="text-align:center; margin-top:10px; font-size:14px; font-weight:bold; color:var(--primary);">${getDisplayMinute(m.status, m.rawSeconds)}</div>
                          </div>`;
             });
-            document.getElementById('matches-container').innerHTML = html;
+            document.getElementById('matches-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No friendlies scheduled.</p>";
         });
 
         // TABS & PROFILES
@@ -688,8 +706,7 @@
             try {
                 let scoreOutOf10 = selectedStarScore * 2; let pName = document.getElementById('pp-name').innerText;
                 const docRef = doc(db, "matches", window.currentMatch.id);
-                // Safe incrementation for ratings map
-                await updateDoc(docRef, { [`ratings.${pName}.sum`]: increment(scoreOutOf10), [`ratings.${pName}.votes`]: increment(1) });
+                await updateDoc(docRef, { [`ratings.${pName}.sum`]: increment(scoreOutOf10),[`ratings.${pName}.votes`]: increment(1) });
                 document.getElementById('player-profile-modal').style.display='none'; alert("Rating saved!");
             } catch(e) { console.error(e); alert("Error saving rating."); }
             btn.innerText = "Submit Fan Rating"; btn.disabled = false;
@@ -699,7 +716,7 @@
             const t = allTeams.find(x => x.id === teamId); if(!t) return;
             document.getElementById('tp-logo').src = t.logo; document.getElementById('tp-name').innerText = t.name;
             let html = '<ul style="list-style:none; padding:0; margin:0;">';
-            t.roster.forEach(p => html += `<li style="padding:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; cursor:pointer;" onclick="openPlayerProfile('${p.name}', '${t.name}')"><span style="color:var(--primary); font-weight:bold; width:40px;">${p.pos}</span><img src="${p.image||t.logo}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:10px; background:#fff;"><span style="font-weight:bold; font-size:16px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span></li>`);
+            t.roster.forEach(p => html += `<li style="padding:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; cursor:pointer;" onclick="openPlayerProfile('${p.name}', '${t.name}')"><span style="color:var(--primary); font-weight:bold; width:45px;">${p.pos}</span><img src="${p.image||t.logo}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:10px; background:#fff;"><span style="font-weight:bold; font-size:16px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span></li>`);
             html += '</ul>'; document.getElementById('tp-roster').innerHTML = html; document.getElementById('team-profile').style.display = 'block';
         }
 
@@ -764,19 +781,19 @@
                     return layout;
                 }
 
-                const buildPitch = (lObj, tName, logo, side) => {
+                const buildPitch = (lObj, tName, logo, side, teamId) => {
+                    let teamData = allTeams.find(t => t.id === teamId);
                     let layout = categorize(lObj.starters ||[]);
                     const getRow = (arr) => {
                         let rowHtml = `<div class="pitch-row">`;
                         arr.forEach(p => {
                             if(!p.name) return; let r = m.ratings?.[p.name]; let avg = r && r.votes>0 ? (r.sum/r.votes).toFixed(1) : '-';
-                            rowHtml += `<div class="pitch-player" onclick="openPlayerProfile('${p.name}', '${tName}')"><div class="pitch-rating">${avg}</div><img src="${p.image||logo}" class="pitch-logo" style="${p.image?'object-fit:cover; padding:0; border:2px solid #fff;':''}"><div class="pitch-name">${p.name}${p.isCap?' ©️':''}</div>${getPlayerIcons(p.name, side, m)}</div>`;
+                            let pImg = teamData?.roster?.find(x => x.name === p.name)?.image || logo;
+                            rowHtml += `<div class="pitch-player" onclick="openPlayerProfile('${p.name}', '${tName}')"><div class="pitch-rating">${avg}</div><img src="${pImg}" class="pitch-logo" style="${pImg!==logo?'object-fit:cover; padding:0; border:2px solid #fff;':''}"><div class="pitch-name">${p.name}${p.isCap?' ©️':''}</div>${getPlayerIcons(p.name, side, m)}</div>`;
                         });
                         return rowHtml + `</div>`;
                     }
-                    // Formation: FWD on top, down to GK
                     let html = `<div class="pitch-container" id="pitch-export-${side}">${getRow(layout.FWD)}${getRow(layout.MID)}${getRow(layout.DEF)}${getRow(layout.GK)}</div>`;
-                    
                     html += `<h4 style="border-bottom:1px solid #333; padding-bottom:5px;">Bench</h4>`;
                     (lObj.subs ||[]).forEach(p => { 
                         if(!p.name) return; let r = m.ratings?.[p.name]; let avg = r && r.votes>0 ? (r.sum/r.votes).toFixed(1) : '-';
@@ -785,16 +802,16 @@
                     return html;
                 }
                 
-                document.getElementById('lineups-team-a').innerHTML = buildPitch(m.lineupA, m.teamA.name, m.teamA.logo, 'A');
-                document.getElementById('lineups-team-b').innerHTML = buildPitch(m.lineupB, m.teamB.name, m.teamB.logo, 'B');
+                document.getElementById('lineups-team-a').innerHTML = buildPitch(m.lineupA, m.teamA.name, m.teamA.logo, 'A', m.teamA.id);
+                document.getElementById('lineups-team-b').innerHTML = buildPitch(m.lineupB, m.teamB.name, m.teamB.logo, 'B', m.teamB.id);
 
                 // Match Timeline
                 let timeline =[];
                 const addEv = (arr, side, icon, fTxt) => { if(arr) arr.forEach(e => { let n = typeof e==='string'?e:e.name; let min = typeof e==='string'?'?':(e.minute||'?'); timeline.push({min:parseInt(min)||999, rMin:min, text:fTxt(n, e.assist), icon, side}); }); };
                 addEv(m.stats?.A?.scorers, 'A', '⚽', (n,a)=>`<strong>${n}</strong> (Goal)${a&&a!=='None'?`<br><span style="font-size:12px; color:#aaa;">Assist: ${a}</span>`:''}`); 
                 addEv(m.stats?.B?.scorers, 'B', '⚽', (n,a)=>`<strong>${n}</strong> (Goal)${a&&a!=='None'?`<br><span style="font-size:12px; color:#aaa;">Assist: ${a}</span>`:''}`);
-                addEv(m.stats?.A?.yellows, 'A', '🟨', n=>`<strong>${n}</strong> (Yellow)`); addEv(m.stats?.B?.yellows, 'B', '🟨', n=>`<strong>${n}</strong> (Yellow)`);
-                addEv(m.stats?.A?.reds, 'A', '🟥', n=>`<strong>${n}</strong> (Red)`); addEv(m.stats?.B?.reds, 'B', '🟥', n=>`<strong>${n}</strong> (Red)`);
+                addEv(m.stats?.A?.yellows, 'A', '🟨', n=>`<strong>${n}</strong>`); addEv(m.stats?.B?.yellows, 'B', '🟨', n=>`<strong>${n}</strong>`);
+                addEv(m.stats?.A?.reds, 'A', '🟥', n=>`<strong>${n}</strong>`); addEv(m.stats?.B?.reds, 'B', '🟥', n=>`<strong>${n}</strong>`);
                 if(m.subsEvents?.A) m.subsEvents.A.forEach(e => timeline.push({min:parseInt(e.minute)||999, rMin:e.minute||'?', text:`<strong style="color:var(--green)">↑ ${e.in}</strong> <br><strong style="color:var(--red)">↓ ${e.out}</strong>`, icon:'🔄', side:'A'}));
                 if(m.subsEvents?.B) m.subsEvents.B.forEach(e => timeline.push({min:parseInt(e.minute)||999, rMin:e.minute||'?', text:`<strong style="color:var(--green)">↑ ${e.in}</strong> <br><strong style="color:var(--red)">↓ ${e.out}</strong>`, icon:'🔄', side:'B'}));
                 timeline.sort((a,b) => a.min - b.min);
