@@ -62,6 +62,7 @@
 
         .player-row { padding:10px 5px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center; cursor:pointer; transition:0.2s;}
         .player-row:hover { background:#222; }
+        .rating-badge { background:var(--gold); color:#000; padding:4px 10px; border-radius:6px; font-weight:bold; font-size:14px; }
         
         .stars-container { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; font-size: 35px; color: #444; cursor: pointer; }
         .stars-container span.active { color: var(--gold); }
@@ -69,7 +70,7 @@
         .cap-icon { background:#3498db; color:#fff; font-size:10px; padding:2px 5px; border-radius:10px; margin-left:5px; vertical-align:middle; }
         .red-card-icon { display:inline-block; width:10px; height:14px; background:#e74c3c; border-radius:2px; margin:0 3px; vertical-align:middle; }
         
-        /* Leaderboards & FotMob Standings */
+        /* Leaderboards & Brackets */
         .lb-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: var(--bg-panel); border-radius: 8px; overflow: hidden; font-size:14px; }
         .lb-table th { background: #111; padding: 10px; text-align: left; color: var(--primary); font-size: 12px; }
         .lb-table td { padding: 10px; border-bottom: 1px solid #333; cursor:pointer; }
@@ -78,7 +79,6 @@
         .group-table th:nth-child(2), .group-table td:nth-child(2) { text-align:left; }
         .group-table td:nth-child(2) { font-weight:bold; font-size:15px; }
 
-        /* Knockout Bracket Tree */
         .bracket-container { display: flex; overflow-x: auto; gap: 40px; padding: 20px 0; font-size: 12px; }
         .bracket-round { display: flex; flex-direction: column; justify-content: space-around; gap: 20px; min-width: 150px; }
         .bracket-node { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 10px; cursor: pointer; position: relative; }
@@ -143,7 +143,7 @@
         </div>
 
         <div id="tab-matches" class="view-section active">
-            <h3 style="border-bottom:1px solid #333; padding-bottom:10px;">Live & Upcoming</h3>
+            <h3 style="border-bottom:1px solid #333; padding-bottom:10px;">Live & Upcoming Friendlies</h3>
             <div id="matches-container"><p style="color:#888;">Loading fixtures...</p></div>
         </div>
 
@@ -195,6 +195,7 @@
             
             <div id="mc-admin-buttons" style="display:none; margin-top:20px; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="launchBroadcast()">🔴 Broadcast Match</button>
+                <button id="mc-export-fixture" style="background:#3498db; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="exportFixtureImage()">📥 Save Fixture</button>
                 <button style="background:#c0392b; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="deleteCurrentMatch()">🗑️ Delete</button>
             </div>
         </div>
@@ -218,7 +219,7 @@
             </div>
             <div id="mc-tab-stats" class="view-section"><div id="mc-stats-container"></div></div>
             <div id="mc-tab-lineups" class="view-section">
-                <p style="text-align:center; color:var(--primary); font-size:13px; margin-top:0;">Tap a player to view full profile & rate performance!</p>
+                <p style="text-align:center; color:var(--primary); font-size:13px; margin-top:0;">Tap a player to view profile & rate performance!</p>
                 <button onclick="downloadLineupImage()" style="width:100%; background:#3498db; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:15px;">📥 Download Pitch PNG</button>
                 <div id="lineups-export-area">
                     <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
@@ -232,7 +233,7 @@
         </div>
     </div>
 
-    <!-- 🛡️ Full Player Profile & Rating Modal -->
+    <!-- Player Profile Modal -->
     <div id="player-profile-modal" class="modal">
         <div class="modal-content" style="width: 95%; max-width: 450px;">
             <h2 id="pp-name" style="color:var(--primary); margin-top:0; margin-bottom:5px;">Player Name</h2>
@@ -262,7 +263,7 @@
         </div>
     </div>
 
-    <!-- 🛡️ Team Profile View -->
+    <!-- Team Profile View -->
     <div id="team-profile" style="background:var(--bg-dark); min-height:100vh; position:absolute; top:0; left:0; width:100%; z-index:300; display:none; overflow-y:auto;">
         <div style="background:#000; padding:30px 20px; text-align:center; position:relative;">
             <button style="position:absolute; left:15px; top:15px; background:none; border:none; color:var(--primary); font-size:16px; cursor:pointer; font-weight:bold;" onclick="document.getElementById('team-profile').style.display='none'">← Back</button>
@@ -314,7 +315,9 @@
 
     <div id="modal-news" class="modal"><div class="modal-content"><h2>Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><button onclick="postNews()">Post News</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
-    <!-- FIREBASE & LOGIC -->
+    <!-- Hidden Fixture Graphic -->
+    <div style="position: absolute; left: -9999px; top: 0; width: 0; height: 0; overflow: hidden;"><div id="fixture-graphic-area" style="width: 800px; height: 800px; background: linear-gradient(135deg, #0d283c 0%, #0d283c 40%, #173b2c 100%); position: relative; font-family: 'Segoe UI', sans-serif;"><div style="background: var(--primary); color: #000; text-align: center; padding: 15px; font-size: 26px; font-weight: 900; letter-spacing: 2px;">MATCH FIXTURE</div><div style="text-align: center; margin-top: 35px; color: #fff; font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px;">🏆 <span id="gfx-stage">R16 M1</span></div><div style="text-align: center; margin-top: 30px; font-size: 150px; font-weight: 900; font-style: italic; color: #fff; line-height: 1; letter-spacing: 5px;">VS</div><div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding: 25px 40px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); height: 50px;"><div style="display: flex; align-items: center; gap: 18px;"><img id="gfx-logo1" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="gfx-team1" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM A</div></div><div style="display: flex; align-items: center; gap: 18px; flex-direction: row-reverse;"><img id="gfx-logo2" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="gfx-team2" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM B</div></div></div><div style="text-align: center; margin-top: 70px; color: #fff;"><div id="gfx-time" style="font-size: 40px; font-weight: 900; margin-bottom: 20px; letter-spacing: 1px;">🕒 18:00</div></div></div></div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
@@ -372,23 +375,18 @@
             buildAutoBrackets();
         }
 
-        // Auto-Generate Brackets / Standings
         function buildAutoBrackets() {
             let html = '';
             allTournaments.forEach(tourney => {
                 let tMatches = allMatches.filter(m => m.tournamentName === tourney.name && m.isOfficial);
                 html += `<div class="bracket-box"><h4 style="margin-top:0; color:var(--primary); text-transform:uppercase;">${tourney.name}</h4>`;
-                
                 if(tourney.type.toLowerCase().includes('group')) {
-                    let groups =['A','B','C','D','E','F','G','H'];
-                    let foundGroup = false;
+                    let groups =['A','B','C','D','E','F','G','H']; let foundGroup = false;
                     groups.forEach(g => {
                         let gTeams = allTeams.filter(t => t.tournamentId === tourney.id && t.group === g);
-                        if(gTeams.length === 0) return;
-                        foundGroup = true;
+                        if(gTeams.length === 0) return; foundGroup = true;
                         
-                        let table = {};
-                        gTeams.forEach(t => table[t.id] = {name:t.name, logo:t.logo, id:t.id, p:0, w:0, d:0, l:0, gf:0, ga:0, gd:0, pts:0});
+                        let table = {}; gTeams.forEach(t => table[t.id] = {name:t.name, logo:t.logo, id:t.id, p:0, w:0, d:0, l:0, gf:0, ga:0, gd:0, pts:0});
                         
                         let gMatches = tMatches.filter(m => table[m.teamA?.id] || table[m.teamB?.id]);
                         gMatches.forEach(m => {
@@ -397,10 +395,7 @@
                                 table[tA].p++; table[tB].p++;
                                 table[tA].gf += m.scoreA; table[tA].ga += m.scoreB; table[tA].gd = table[tA].gf - table[tA].ga;
                                 table[tB].gf += m.scoreB; table[tB].ga += m.scoreA; table[tB].gd = table[tB].gf - table[tB].ga;
-                                
-                                if(m.scoreA > m.scoreB) { table[tA].w++; table[tA].pts+=3; table[tB].l++; }
-                                else if(m.scoreB > m.scoreA) { table[tB].w++; table[tB].pts+=3; table[tA].l++; }
-                                else { table[tA].d++; table[tB].d++; table[tA].pts+=1; table[tB].pts+=1; }
+                                if(m.scoreA > m.scoreB) { table[tA].w++; table[tA].pts+=3; table[tB].l++; } else if(m.scoreB > m.scoreA) { table[tB].w++; table[tB].pts+=3; table[tA].l++; } else { table[tA].d++; table[tB].d++; table[tA].pts+=1; table[tB].pts+=1; }
                             }
                         });
                         let sorted = Object.values(table).sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
@@ -410,17 +405,13 @@
                         sorted.forEach((t,i) => {
                             let border = i < 2 ? 'border-left: 3px solid var(--primary);' : (i===2 ? 'border-left: 3px solid var(--gold);' : '');
                             html += `<tr><td style="${border}">${i+1}</td><td><div style="display:flex; align-items:center; gap:5px;"><img src="${t.logo}" style="width:20px; height:20px; border-radius:50%; object-fit:contain; background:#fff;"> ${t.name}</div></td><td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf}-${t.ga}</td><td>${t.gd>0?'+':''}${t.gd}</td><td style="color:var(--primary); font-weight:bold;">${t.pts}</td></tr>`;
-                        });
-                        html += `</table>`;
+                        }); html += `</table>`;
                         
-                        // Show Group Matches
-                        let groupMatches = gMatches.filter(m => m.bracketNode === `Group-${g}`);
-                        let gmHtml = '';
+                        let groupMatches = gMatches.filter(m => m.bracketNode === `Group-${g}`); let gmHtml = '';
                         groupMatches.forEach(m => {
                             let s = m.status === 'Pending' ? m.timeInfo.split(' ')[1]||'TBD' : `${m.scoreA} - ${m.scoreB}`;
                             gmHtml += `<div style="background:#111; padding:10px; margin-top:5px; border-radius:4px; font-size:13px; display:flex; justify-content:space-between; border-left:3px solid var(--primary); cursor:pointer;" onclick="openMatchCenter('${m.id}')"><span>${m.teamA.name}</span> <span style="color:var(--gold); font-weight:bold;">${s}</span> <span>${m.teamB.name}</span></div>`;
-                        });
-                        html += gmHtml;
+                        }); html += gmHtml;
                     });
                     if(!foundGroup) html += `<p style="font-size:13px; color:#888;">No teams registered for groups yet.</p>`;
                 } else {
@@ -446,12 +437,16 @@
                 html += `</div>`;
             });
             document.getElementById('brackets-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No official tournaments found.</p>";
+            if(isAdmin) document.querySelectorAll('[id^="add-btn-"]').forEach(btn => btn.style.display = 'block');
         }
 
         onAuthStateChanged(auth, (user) => { 
             isAdmin = !!user; 
             document.getElementById('admin-panel').style.display = isAdmin ? 'flex' : 'none'; 
-            if(window.currentMatch) document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none'; 
+            if(window.currentMatch) {
+                document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none'; 
+                document.getElementById('mc-export-fixture').style.display = isAdmin && window.currentMatch.status === 'Pending' ? 'block' : 'none';
+            }
             renderTeamsTab(); buildAutoBrackets(); 
         });
 
@@ -491,7 +486,6 @@
         window.closeTeamModal = () => { document.getElementById('modal-team').style.display='none'; editingTeamId = null; }
 
         window.saveTeam = async () => {
-            document.getElementById('team-save-btn').innerText = "Saving...";
             const file = document.getElementById('team-logo').files[0]; let logoBase64 = file ? await compressImg(file, 200) : null;
             let promises = Array.from(document.querySelectorAll('.roster-row')).map(async row => {
                 let n = row.querySelector('.r-name').value.trim(); let p = row.querySelector('.r-pos').value; let c = row.querySelector('.r-cap').checked;
@@ -505,7 +499,7 @@
 
             if(editingTeamId) { await updateDoc(doc(db, "teams", editingTeamId), data); alert("Squad Updated!"); } 
             else { if(!logoBase64) return alert("Please attach a logo for new teams."); await addDoc(collection(db, "teams"), data); alert("Squad Registered!"); }
-            document.getElementById('team-save-btn').innerText = "Register Team"; closeTeamModal();
+            closeTeamModal();
         }
         window.deleteTeam = async () => { if(confirm("Permanently delete this team?")) { await deleteDoc(doc(db, "teams", editingTeamId)); closeTeamModal(); } }
 
@@ -527,8 +521,7 @@
 
         window.createMatch = async (isOfficial = false) => {
             try {
-                let selA = isOfficial ? 'bm-teamA' : 'm-teamA'; let selB = isOfficial ? 'bm-teamB' : 'm-teamB';
-                let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
+                let selA = isOfficial ? 'bm-teamA' : 'm-teamA'; let selB = isOfficial ? 'bm-teamB' : 'm-teamB'; let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
                 let timeStr = document.getElementById(isOfficial?'bm-weather-icon':'m-weather-icon').value + " " + document.getElementById(isOfficial?'bm-time':'m-time').value;
                 let tA = allTeams.find(t => t.id === document.getElementById(selA).value); let tB = allTeams.find(t => t.id === document.getElementById(selB).value); let tourney = allTournaments.find(t => t.id === selTourney);
                 if(!tA || !tB || !tourney) return alert("Select valid Tournament and Teams!");
@@ -541,14 +534,13 @@
                     teamA: { id: tA.id, name: tA.name, logo: tA.logo || "" }, teamB: { id: tB.id, name: tB.name, logo: tB.logo || "" },
                     timeInfo: timeStr, status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                     stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                    lineupA: { starters: cleanRosterA.slice(0,9), subs: cleanRosterA.slice(9) }, lineupB: { starters: cleanRosterB.slice(0,9), subs: cleanRosterB.slice(9) },
+                    lineupA: { formation: '4-3-3', starters: cleanRosterA.slice(0,9), subs: cleanRosterA.slice(9) }, lineupB: { formation: '4-3-3', starters: cleanRosterB.slice(0,9), subs: cleanRosterB.slice(9) },
                     ratings: {}, motm: null, timestamp: new Date()
                 });
                 document.getElementById('modal-match').style.display='none'; document.getElementById('modal-bracket-match').style.display='none';
-            } catch(e) { console.error(e); alert("Failed to schedule match: " + e.message); }
+            } catch(e) { console.error("Match Creation Error:", e); alert("Failed to schedule match: " + e.message); }
         }
 
-        window.createBracketMatch = () => window.createMatch(true);
         window.deleteCurrentMatch = async () => { if(confirm("Permanently delete this match?")) { await deleteDoc(doc(db, "matches", window.currentMatch.id)); window.closeMatchCenter(); } }
         
         window.postNews = async () => { const file = document.getElementById('n-image').files[0]; let imgBase64 = file ? await compressImg(file, 600) : null; await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, date: new Date().toLocaleDateString() }); document.getElementById('modal-news').style.display='none'; }
@@ -568,15 +560,14 @@
 
         onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc")), snap => {
             allMatches = snap.docs.map(d => ({id: d.id, ...d.data()})); recalculateGlobalStats();
-            let html = ''; allMatches.forEach(m => {
-                let badge = m.isOfficial ? `<div style="position:absolute; top:5px; right:5px; background:var(--gold); color:#000; font-size:10px; padding:2px 5px; border-radius:3px; font-weight:bold;">OFFICIAL</div>` : `<div style="position:absolute; top:5px; right:5px; background:#3498db; color:#fff; font-size:10px; padding:2px 5px; border-radius:3px; font-weight:bold;">FRIENDLY</div>`;
+            let html = ''; allMatches.filter(m => !m.isOfficial).forEach(m => {
                 let s = m.status === 'Pending' ? m.timeInfo.split(' ')[1] || m.timeInfo : `${m.scoreA||0} - ${m.scoreB||0}`;
                 let penTxt = m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0)) ? `<span class="pen-score">(Pen: ${m.penalties.A} - ${m.penalties.B})</span>` : '';
                 let rA = m.stats?.A?.reds?.length || 0; let rB = m.stats?.B?.reds?.length || 0;
                 let rAHtml = Array(rA).fill(`<div class="red-card-icon"></div>`).join(''); let rBHtml = Array(rB).fill(`<div class="red-card-icon"></div>`).join('');
-                html += `<div class="match-card" onclick="openMatchCenter('${m.id}')">${badge}<div class="match-card-header">${m.tournamentName} • ${m.tournamentPhase}</div><div class="match-row"><div class="team-info"><img src="${m.teamA.logo}" class="team-logo">${m.teamA.name} ${rAHtml}</div><div style="text-align:center;"><div class="score-box">${s}</div>${penTxt}</div><div class="team-info" style="flex-direction:row-reverse; text-align:right;"><img src="${m.teamB.logo}" class="team-logo">${m.teamB.name} ${rBHtml}</div></div><div style="text-align:center; margin-top:10px; font-size:14px; font-weight:bold; color:var(--primary);">${getDisplayMinute(m.status, m.rawSeconds)}</div></div>`;
+                html += `<div class="match-card" onclick="openMatchCenter('${m.id}')"><div class="match-card-header">${m.tournamentName} • Friendly</div><div class="match-row"><div class="team-info"><img src="${m.teamA?.logo}" class="team-logo">${m.teamA?.name} ${rAHtml}</div><div style="text-align:center;"><div class="score-box">${s}</div>${penTxt}</div><div class="team-info" style="flex-direction:row-reverse; text-align:right;"><img src="${m.teamB?.logo}" class="team-logo">${m.teamB?.name} ${rBHtml}</div></div><div style="text-align:center; margin-top:10px; font-size:14px; font-weight:bold; color:var(--primary);">${getDisplayMinute(m.status, m.rawSeconds)}</div></div>`;
             });
-            document.getElementById('matches-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No matches scheduled.</p>";
+            document.getElementById('matches-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No friendlies scheduled.</p>";
         });
 
         window.switchMainTab = (id, el) => { document.querySelectorAll('#main-content .view-section').forEach(d => d.classList.remove('active')); document.querySelectorAll('#main-nav .tab').forEach(t => t.classList.remove('active')); document.getElementById(`tab-${id}`).classList.add('active'); el.classList.add('active'); }
@@ -634,24 +625,55 @@
                     document.getElementById('mc-score-a').innerText = '-'; document.getElementById('mc-score-b').innerText = '-';
                     document.getElementById('mc-clock').innerText = "Fixture: " + m.timeInfo;
                     document.getElementById('mc-pens').style.display = 'none';
+                    document.getElementById('mc-export-fixture').style.display = isAdmin ? 'block' : 'none';
                 } else {
                     document.getElementById('mc-score-a').innerText = m.scoreA || 0; document.getElementById('mc-score-b').innerText = m.scoreB || 0;
                     document.getElementById('mc-clock').innerText = getDisplayMinute(m.status, m.rawSeconds);
                     if(m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0))) { document.getElementById('mc-pens').innerText = `(Pen: ${m.penalties?.A||0} - ${m.penalties?.B||0})`; document.getElementById('mc-pens').style.display = 'block'; } else { document.getElementById('mc-pens').style.display = 'none'; }
+                    document.getElementById('mc-export-fixture').style.display = 'none';
                 }
                 document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none';
 
                 const buildStat = (lbl, vA, vB, pct) => { let tot = vA+vB||1; return `<div class="stat-bar-container"><div class="stat-labels"><span>${vA}${pct?'%':''}</span><span style="color:#aaa;">${lbl}</span><span>${vB}${pct?'%':''}</span></div><div class="bar-bg"><div class="bar-fill-a" style="width:${(vA/tot)*100}%"></div><div class="bar-fill-b" style="width:${(vB/tot)*100}%"></div></div></div>`; }
                 document.getElementById('mc-stats-container').innerHTML = buildStat("Possession", m.stats?.A?.possession||50, m.stats?.B?.possession||50, true) + buildStat("Shots", m.stats?.A?.shots||0, m.stats?.B?.shots||0, false) + buildStat("Shots on Target", m.stats?.A?.shotsOnTarget||0, m.stats?.B?.shotsOnTarget||0, false) + buildStat("Fouls", m.stats?.A?.fouls||0, m.stats?.B?.fouls||0, false) + buildStat("Yellow Cards", m.stats?.A?.yellows?.length||0, m.stats?.B?.yellows?.length||0, false) + buildStat("Red Cards", m.stats?.A?.reds?.length||0, m.stats?.B?.reds?.length||0, false) + buildStat("Corners", m.stats?.A?.corners||0, m.stats?.B?.corners||0, false);
 
-                const categorize = (roster) => { let layout = { GK:[], DEF:[], MID:[], FWD:[] }; roster.forEach(p => { let pos = (p.pos||'').toUpperCase(); if(['GK'].includes(pos)) layout.GK.push(p); else if(['CB','LB','RB','DEF','LWB','RWB'].includes(pos)) layout.DEF.push(p); else if(['ST','CF','LW','RW','FWD'].includes(pos)) layout.FWD.push(p); else layout.MID.push(p); }); return layout; }
-
+                // DYNAMIC PITCH LINEUPS BASED ON FORMATION
                 const buildPitch = (lObj, tName, logo, side, teamId) => {
-                    let teamData = allTeams.find(t => t.id === teamId); let layout = categorize(lObj.starters ||[]);
-                    const getRow = (arr) => { let rowHtml = `<div class="pitch-row">`; arr.forEach(p => { if(!p.name) return; let r = m.ratings?.[p.name]; let avg = r && r.votes>0 ? (r.sum/r.votes).toFixed(1) : '-'; let pImg = teamData?.roster?.find(x => x.name === p.name)?.image || logo; rowHtml += `<div class="pitch-player" onclick="openPlayerProfile('${p.name}', '${tName}')"><div class="pitch-rating">${avg}</div><img src="${pImg}" class="pitch-logo" style="${pImg!==logo?'object-fit:cover; padding:0; border:2px solid #fff;':''}"><div class="pitch-name">${p.name}${p.isCap?' ©️':''}</div>${getPlayerIcons(p.name, side, m)}</div>`; }); return rowHtml + `</div>`; }
-                    let html = `<div class="pitch-container" id="pitch-export-${side}">${getRow(layout.FWD)}${getRow(layout.MID)}${getRow(layout.DEF)}${getRow(layout.GK)}</div>`;
+                    let teamData = allTeams.find(t => t.id === teamId);
+                    let formStr = lObj.formation || '4-3-3';
+                    let rowsCounts = formStr.split('-').map(Number);
+
+                    const posWeight = { 'GK':0, 'CB':1, 'LB':1, 'RB':1, 'LWB':1, 'RWB':1, 'DEF':1, 'CDM':2, 'CM':3, 'RM':3, 'LM':3, 'MID':3, 'CAM':4, 'LW':5, 'RW':5, 'CF':6, 'ST':6, 'FWD':6 };
+                    let starters = [...(lObj.starters || [])].sort((a,b) => (posWeight[(a.pos||'').toUpperCase()]||3) - (posWeight[(b.pos||'').toUpperCase()]||3));
+                    let gks = starters.filter(p => (p.pos||'').toUpperCase() === 'GK');
+                    let outfielders = starters.filter(p => (p.pos||'').toUpperCase() !== 'GK');
+                    if(gks.length === 0 && starters.length > 0) { gks = [starters[0]]; outfielders = starters.slice(1); }
+
+                    const getRow = (arr) => {
+                        if(!arr || arr.length===0) return '';
+                        let rowHtml = `<div class="pitch-row">`;
+                        arr.forEach(p => {
+                            if(!p.name) return; let r = m.ratings?.[p.name]; let avg = r && r.votes>0 ? (r.sum/r.votes).toFixed(1) : '-'; let pImg = teamData?.roster?.find(x => x.name === p.name)?.image || logo;
+                            rowHtml += `<div class="pitch-player" onclick="openPlayerProfile('${p.name}', '${tName}')"><div class="pitch-rating">${avg}</div><img src="${pImg}" class="pitch-logo" style="${pImg!==logo?'object-fit:cover; padding:0; border:2px solid #fff;':''}"><div class="pitch-name">${p.name}${p.isCap?' ©️':''}</div>${getPlayerIcons(p.name, side, m)}</div>`;
+                        }); return rowHtml + `</div>`;
+                    }
+
+                    let html = `<div class="pitch-container" id="pitch-export-${side}"><div style="text-align:center; color:rgba(255,255,255,0.5); font-weight:bold; font-size:12px; margin-bottom:10px;">${formStr}</div>`;
+                    
+                    let currentIndex = 0; let builtRows = [];
+                    for(let i=0; i<rowsCounts.length; i++) {
+                        let count = rowsCounts[i]; let rowPlayers = outfielders.slice(currentIndex, currentIndex + count);
+                        builtRows.push(getRow(rowPlayers)); currentIndex += count;
+                    }
+                    if(currentIndex < outfielders.length) builtRows[builtRows.length-1] = builtRows[builtRows.length-1].replace('</div>', '') + getRow(outfielders.slice(currentIndex)).replace('<div class="pitch-row">', '');
+                    for(let i=builtRows.length-1; i>=0; i--) { html += builtRows[i]; }
+                    html += getRow(gks); html += `</div>`;
+                    
                     html += `<h4 style="border-bottom:1px solid #333; padding-bottom:5px;">Bench</h4>`;
-                    (lObj.subs ||[]).forEach(p => { if(!p.name) return; let r = m.ratings?.[p.name]; let avg = r && r.votes>0 ? (r.sum/r.votes).toFixed(1) : '-'; html += `<div class="player-row" onclick="openPlayerProfile('${p.name}', '${tName}')"><span style="font-weight:bold; font-size:14px;">${p.pos} <span style="color:#fff; margin-left:10px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span>${getPlayerIcons(p.name, side, m)}</span><span class="rating-badge">★ ${avg}</span></div>`; }); return html;
+                    (lObj.subs ||[]).forEach(p => { 
+                        if(!p.name) return; let r = m.ratings?.[p.name]; let avg = r && r.votes>0 ? (r.sum/r.votes).toFixed(1) : '-';
+                        html += `<div class="player-row" onclick="openPlayerProfile('${p.name}', '${tName}')"><span style="font-weight:bold; font-size:14px;">${p.pos} <span style="color:#fff; margin-left:10px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span>${getPlayerIcons(p.name, side, m)}</span><span class="rating-badge">★ ${avg}</span></div>`; 
+                    }); return html;
                 }
                 
                 document.getElementById('lineups-team-a').innerHTML = buildPitch(m.lineupA, m.teamA.name, m.teamA.logo, 'A', m.teamA.id);
@@ -668,7 +690,7 @@
                 let tHTML = ''; timeline.forEach(t => { let align = t.side==='B'?'text-align:right; flex-direction:row-reverse;':''; tHTML += `<div style="padding:10px; border-bottom:1px solid #333; display:flex; gap:10px; align-items:center; ${align}"><span>${t.icon}</span><span style="color:var(--primary); font-weight:bold; width:30px;">${t.rMin}'</span><span style="flex:1; font-size:14px;">${t.text}</span></div>`; });
                 document.getElementById('mc-events-list').innerHTML = tHTML || "<p style='color:#888; font-style:italic;'>No events yet.</p>";
 
-                if(m.commentary && m.commentary.length > 0) { let cHTML = '';[...m.commentary].reverse().forEach(c => cHTML += `<div class="comm-item"><strong style="color:var(--primary);">${c.minute}'</strong> - ${c.text}</div>`); document.getElementById('mc-commentary-list').innerHTML = cHTML; } 
+                if(m.commentary && m.commentary.length > 0) { let cHTML = ''; [...m.commentary].reverse().forEach(c => cHTML += `<div class="comm-item"><strong style="color:var(--primary);">${c.minute}'</strong> - ${c.text}</div>`); document.getElementById('mc-commentary-list').innerHTML = cHTML; } 
                 else { document.getElementById('mc-commentary-list').innerHTML = "<p style='color:#666; font-style:italic;'>No updates yet.</p>"; }
 
                 if(m.motm) { document.getElementById('mc-motm-banner').innerText = "⭐ Man of the Match: " + m.motm; document.getElementById('mc-motm-banner').style.display='block'; } else { document.getElementById('mc-motm-banner').style.display='none'; }
@@ -676,6 +698,28 @@
         }
         window.closeMatchCenter = () => { if(mcListener) mcListener(); window.currentMatch = null; document.getElementById('match-center').style.display='none'; document.getElementById('main-header').style.display='flex'; document.getElementById('main-nav').style.display='flex'; document.getElementById('main-content').style.display='block'; }
         window.launchBroadcast = () => { window.location.href = `admin_tracker.html?id=${window.currentMatch.id}`; }
+
+        window.downloadLineupImage = () => {
+            let side = document.getElementById('lineups-team-a').style.display !== 'none' ? 'A' : 'B';
+            let tName = side === 'A' ? window.currentMatch.teamA.name : window.currentMatch.teamB.name;
+            let el = document.getElementById(`pitch-export-${side}`);
+            if(!el) return alert("Pitch not found.");
+            
+            let oldBorder = el.style.border; el.style.border = 'none';
+            html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#0b6623', logging: false }).then(c => { 
+                const l = document.createElement('a'); l.download = `${tName}_Lineup.png`; l.href = c.toDataURL('image/png'); l.click(); 
+                el.style.border = oldBorder;
+            }).catch(e => { alert("Failed to download lineup: " + e.message); el.style.border = oldBorder; });
+        }
+
+        window.exportFixtureImage = () => {
+            document.getElementById('gfx-stage').innerText = window.currentMatch.tournamentName + " " + window.currentMatch.tournamentPhase;
+            document.getElementById('gfx-team1').innerText = window.currentMatch.teamA.name; document.getElementById('gfx-logo1').src = window.currentMatch.teamA.logo;
+            document.getElementById('gfx-team2').innerText = window.currentMatch.teamB.name; document.getElementById('gfx-logo2').src = window.currentMatch.teamB.logo;
+            document.getElementById('gfx-time').innerText = "🕒 " + window.currentMatch.timeInfo;
+            const area = document.getElementById('fixture-graphic-area').parentElement; area.style.left = '0'; area.style.zIndex = '-100'; area.style.position = 'fixed';
+            setTimeout(() => { html2canvas(document.getElementById('fixture-graphic-area'), { scale: 2, useCORS: true, backgroundColor: null }).then(c => { const l = document.createElement('a'); l.download = `Fixture_${window.currentMatch.teamA.name}_vs_${window.currentMatch.teamB.name}.png`; l.href = c.toDataURL(); l.click(); area.style.left = '-9999px'; }); }, 500);
+        }
     </script>
 </body>
 </html>
