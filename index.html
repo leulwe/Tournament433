@@ -135,8 +135,8 @@
         <!-- Admin Bar -->
         <div class="admin-controls" id="admin-panel">
             <h3 style="margin-top:0; color:#3498db; width:100%;">🛠️ Admin Platform</h3>
-            <button onclick="document.getElementById('modal-tourney').style.display='flex'">1. Create Tournament</button>
-            <button onclick="openTeamModal()">2. Register Squad</button>
+            <button onclick="document.getElementById('modal-tourney').style.display='flex'">1. Manage Tournament</button>
+            <button onclick="openTeamModal()">2. Manage Squad</button>
             <button onclick="openMatchModal()">3. Schedule Match (Friendly)</button>
             <button onclick="document.getElementById('modal-news').style.display='flex'">4. Post News</button>
             <button onclick="logoutAdmin()" style="background:#e74c3c;">Log Out</button>
@@ -208,7 +208,6 @@
         <div class="mc-content">
             <div id="mc-tab-overview" class="view-section active">
                 <div id="mc-motm-banner" style="display:none; text-align:center; background:var(--gold); color:#000; padding:15px; border-radius:8px; font-weight:bold; font-size:18px; margin-bottom:20px;"></div>
-                
                 <div style="display:flex; gap:20px; flex-direction:column;">
                     <div><h4 style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">Match Timeline</h4>
                         <p style="font-size:11px; color:#888; margin-top:0;">Goals ⚽ | Assists 🤝 | Subs 🔄 | Yellow 🟨 | Red 🟥</p>
@@ -219,7 +218,7 @@
             </div>
             <div id="mc-tab-stats" class="view-section"><div id="mc-stats-container"></div></div>
             <div id="mc-tab-lineups" class="view-section">
-                <p style="text-align:center; color:var(--primary); font-size:13px; margin-top:0;">Tap a player to view full profile & rate performance!</p>
+                <p style="text-align:center; color:var(--primary); font-size:13px; margin-top:0;">Tap a player to view profile & rate performance!</p>
                 <button onclick="downloadLineupImage()" style="width:100%; background:#3498db; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:15px;">📥 Download Pitch PNG</button>
                 <div id="lineups-export-area">
                     <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
@@ -254,7 +253,6 @@
 
             <div id="pp-rating-block" style="display:none; border-top:1px solid #333; padding-top:15px;">
                 <h3 style="margin-bottom:5px; color:var(--gold);">Rate Today's Performance</h3>
-                <p style="font-size:12px; color:#aaa; margin-top:0; margin-bottom:15px;">Rate out of 5 stars (Saved as out of 10).</p>
                 <div class="stars-container" id="star-box">
                     <span onclick="setStar(1)">★</span><span onclick="setStar(2)">★</span><span onclick="setStar(3)">★</span><span onclick="setStar(4)">★</span><span onclick="setStar(5)">★</span>
                 </div>
@@ -291,7 +289,6 @@
         </div>
     </div>
     
-    <!-- DEDICATED TEAM REGISTER UI -->
     <div id="modal-team" class="modal">
         <div class="modal-content" style="max-width:800px; width:95%;">
             <h2 id="team-modal-title">Register Squad</h2>
@@ -300,7 +297,7 @@
                 <select id="team-group"><option value="A">Group A</option><option value="B">Group B</option><option value="C">Group C</option><option value="D">Group D</option><option value="E">Group E</option><option value="F">Group F</option><option value="G">Group G</option><option value="H">Group H</option></select>
             </div>
             <input type="text" id="team-name" placeholder="Team Name">
-            <label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Team Logo</label>
+            <label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Team Logo (Leave blank to keep existing)</label>
             <input type="file" id="team-logo" accept="image/*">
             <label style="display:block; text-align:left; font-size:12px; margin-bottom:5px; margin-top:10px;">Roster (Add photo by clicking the circle)</label>
             <div id="roster-builder" style="max-height:350px; overflow-y:auto; margin-bottom:10px; padding-right:5px; text-align:left;"></div>
@@ -311,10 +308,8 @@
         </div>
     </div>
     
-    <!-- Match Modal for FRIENDLIES (From home tab) -->
     <div id="modal-match" class="modal"><div class="modal-content"><h2>Schedule Match (Friendly)</h2><select id="m-tourney" onchange="loadTeamsForMatch(this.value, 'm-teamA', 'm-teamB')"></select><select id="m-teamA"><option>Home Team</option></select><select id="m-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="m-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="m-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createMatch(false)">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
     
-    <!-- Match Modal for OFFICIAL BRACKET (From Bracket tab) -->
     <div id="modal-bracket-match" class="modal"><div class="modal-content"><h2 id="bm-title">Schedule Official Match</h2><select id="bm-teamA"><option>Home Team</option></select><select id="bm-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="bm-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="bm-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createBracketMatch()">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
     <div id="modal-news" class="modal"><div class="modal-content"><h2>Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><button onclick="postNews()">Post News</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
@@ -445,10 +440,10 @@
                                     <div style="font-size:10px; color:#888; text-align:center; margin-top:4px;">${match.status==='FINISHED'?'FT'+pen:(match.status==='Pending'?s:match.clock)}</div>
                                 </div>`;
                             } else {
-                                html += `<div class="bracket-node" style="border-style:dashed;" ${isAdmin ? `onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')"` : ''}>
+                                html += `<div class="bracket-node" style="border-style:dashed;" onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')">
                                     <div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>
                                     <div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>
-                                    ${isAdmin ? `<div style="font-size:10px; color:var(--primary); text-align:center; margin-top:4px;">+ Schedule</div>` : ''}
+                                    <div id="add-btn-${nodeId}" style="display:none; font-size:10px; color:var(--primary); text-align:center; margin-top:4px;">+ Schedule</div>
                                 </div>`;
                             }
                         }
@@ -459,6 +454,11 @@
                 html += `</div>`;
             });
             document.getElementById('brackets-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No official tournaments found.</p>";
+            
+            // Post-render admin check for brackets
+            if(isAdmin) {
+                document.querySelectorAll('[id^="add-btn-"]').forEach(btn => btn.style.display = 'block');
+            }
         }
 
         onAuthStateChanged(auth, (user) => { 
@@ -539,6 +539,7 @@
         window.loadTeamsForMatch = (tId, selA_id, selB_id) => { const sA = document.getElementById(selA_id); const sB = document.getElementById(selB_id); sA.innerHTML = ''; sB.innerHTML = ''; allTeams.filter(t => t.tournamentId === tId).forEach(t => { sA.add(new Option(t.name, t.id)); sB.add(new Option(t.name, t.id)); }); }
         
         window.openBracketMatchModal = (tId, nodeId) => {
+            if(!isAdmin) return;
             activeBracketNode = nodeId; activeBracketTourney = tId;
             let t = allTournaments.find(x => x.id === tId);
             document.getElementById('bm-title').innerText = `Schedule ${t.name} (Official)`;
@@ -547,25 +548,31 @@
         }
 
         window.createMatch = async (isOfficial = false) => {
-            let selA = isOfficial ? 'bm-teamA' : 'm-teamA'; let selB = isOfficial ? 'bm-teamB' : 'm-teamB';
-            let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
-            let timeStr = document.getElementById(isOfficial?'bm-weather-icon':'m-weather-icon').value + " " + document.getElementById(isOfficial?'bm-time':'m-time').value;
-            
-            let tA = allTeams.find(t => t.id === document.getElementById(selA).value); let tB = allTeams.find(t => t.id === document.getElementById(selB).value); let tourney = allTournaments.find(t => t.id === selTourney);
-            
-            if(!tA || !tB || !tourney) return alert("Select valid Tournament and Teams!");
+            try {
+                let selA = isOfficial ? 'bm-teamA' : 'm-teamA'; let selB = isOfficial ? 'bm-teamB' : 'm-teamB';
+                let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
+                let timeStr = document.getElementById(isOfficial?'bm-weather-icon':'m-weather-icon').value + " " + document.getElementById(isOfficial?'bm-time':'m-time').value;
+                
+                let tA = allTeams.find(t => t.id === document.getElementById(selA).value); 
+                let tB = allTeams.find(t => t.id === document.getElementById(selB).value); 
+                let tourney = allTournaments.find(t => t.id === selTourney);
+                
+                if(!tA || !tB || !tourney) return alert("Select valid Tournament and Teams!");
 
-            let rosterA = tA.roster || []; let rosterB = tB.roster ||[];
+                let rosterA = tA.roster || []; let rosterB = tB.roster ||[];
 
-            await addDoc(collection(db, "matches"), {
-                tournamentId: tourney.id, tournamentName: tourney.name, tournamentPhase: tourney.type, isOfficial: isOfficial, bracketNode: isOfficial ? activeBracketNode : null,
-                teamA: { id: tA.id, name: tA.name, logo: tA.logo }, teamB: { id: tB.id, name: tB.name, logo: tB.logo },
-                timeInfo: timeStr, status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
-                stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                lineupA: { starters: rosterA.slice(0,9), subs: rosterA.slice(9) }, lineupB: { starters: rosterB.slice(0,9), subs: rosterB.slice(9) },
-                ratings: {}, motm: null, timestamp: new Date()
-            });
-            document.getElementById('modal-match').style.display='none'; document.getElementById('modal-bracket-match').style.display='none';
+                await addDoc(collection(db, "matches"), {
+                    tournamentId: tourney.id, tournamentName: tourney.name, tournamentPhase: tourney.type, isOfficial: isOfficial, bracketNode: isOfficial ? activeBracketNode : null,
+                    teamA: { id: tA.id, name: tA.name, logo: tA.logo || "" }, teamB: { id: tB.id, name: tB.name, logo: tB.logo || "" },
+                    timeInfo: timeStr, status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
+                    stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
+                    lineupA: { starters: rosterA.slice(0,9), subs: rosterA.slice(9) }, lineupB: { starters: rosterB.slice(0,9), subs: rosterB.slice(9) },
+                    ratings: {}, motm: null, timestamp: new Date()
+                });
+                document.getElementById('modal-match').style.display='none'; document.getElementById('modal-bracket-match').style.display='none';
+            } catch(e) {
+                console.error("Match Creation Error:", e); alert("Failed to schedule match: " + e.message);
+            }
         }
 
         window.createBracketMatch = () => window.createMatch(true);
