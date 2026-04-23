@@ -73,7 +73,7 @@
 
         <div style="background:#2c3e50; padding:15px; border-radius:8px; display:flex; gap:10px; flex-wrap:wrap;">
             <input type="text" id="comm-input" placeholder="Live text commentary (e.g., Great save by the keeper!)" style="flex:1; padding:10px; border-radius:5px; border:none; font-size:16px; min-width:200px;">
-            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post</button>
+            <button onclick="postCommentary()" style="background:var(--neon); color:#000; font-weight:bold; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Post to App</button>
         </div>
 
         <div id="export-controls" style="display:none; margin-top:20px; flex-wrap:wrap; gap:10px; justify-content:center; background:#ecf0f1; padding:15px; border-radius:8px; border:1px solid #bdc3c7;">
@@ -112,10 +112,12 @@
             <h2 id="ev-title" style="margin-top:0;">Record Event</h2>
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Player</label>
             <select id="ev-player"></select>
+            
             <div id="ev-assist-container" style="display:none;">
                 <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Assist By (Optional)</label>
                 <select id="ev-assist"></select>
             </div>
+            
             <label style="display:block; text-align:left; font-weight:bold; margin-bottom:5px;">Minute</label>
             <input type="text" id="ev-min" placeholder="Minute (e.g. 45)">
             <button onclick="saveEvent()">Save Event</button>
@@ -233,12 +235,21 @@
 
         // --- LINEUP EDITOR ---
         window.openLineupEditor = () => {
-            document.getElementById('le-teamA').innerText = matchData.teamA.name; document.getElementById('le-teamB').innerText = matchData.teamB.name;
+            document.getElementById('le-teamA').innerText = matchData.teamA.name;
+            document.getElementById('le-teamB').innerText = matchData.teamB.name;
+            
             const buildList = (team) => {
-                let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs]; let html = '';
-                fullRoster.forEach((p, i) => { let isStarter = i < 9 ? 'selected' : ''; let isBench = i >= 9 ? 'selected' : '';
-                    html += `<div class="lineup-edit-row"><span style="font-weight:bold;">${p.name} <span style="color:#888; font-size:12px;">(${p.pos})</span></span><select id="le-${team}-${i}"><option value="Starter" ${isStarter}>Starter</option><option value="Bench" ${isBench}>Bench</option></select></div>`;
-                }); return html;
+                let fullRoster = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs];
+                let html = '';
+                fullRoster.forEach((p, i) => {
+                    let isStarter = i < 9 ? 'selected' : '';
+                    let isBench = i >= 9 ? 'selected' : '';
+                    html += `<div class="lineup-edit-row">
+                                <span style="font-weight:bold;">${p.name} <span style="color:#888; font-size:12px;">(${p.pos})</span></span>
+                                <select id="le-${team}-${i}"><option value="Starter" ${isStarter}>Starter</option><option value="Bench" ${isBench}>Bench</option></select>
+                             </div>`;
+                });
+                return html;
             }
             document.getElementById('le-listA').innerHTML = buildList('A'); document.getElementById('le-listB').innerHTML = buildList('B');
             document.getElementById('lineup-modal').style.display='flex';
@@ -263,7 +274,11 @@
         // --- SUBSTITUTIONS ---
         const getActivePlayers = (team) => {
             let active = matchData[`lineup${team}`].starters.map(s => s.name);
-            matchData.subsEvents[team].forEach(e => { const idx = active.findIndex(n => n.trim() === e.out.trim()); if (idx !== -1) active.splice(idx, 1); active.push(e.in); });
+            matchData.subsEvents[team].forEach(e => {
+                const idx = active.findIndex(n => n.trim() === e.out.trim());
+                if (idx !== -1) active.splice(idx, 1);
+                active.push(e.in);
+            });
             return active;
         }
 
@@ -271,20 +286,25 @@
             currentSubTeam = team;
             let offSel = document.getElementById('sub-out-select'); offSel.innerHTML = '';
             getActivePlayers(team).forEach(p => { if(p) offSel.add(new Option(p, p)); });
+            
             let inSel = document.getElementById('sub-in-select'); inSel.innerHTML = '';
             let all = [...matchData[`lineup${team}`].starters, ...matchData[`lineup${team}`].subs].map(s=>s.name);
             all.filter(p => !getActivePlayers(team).includes(p)).forEach(p => { if(p) inSel.add(new Option(p, p)); });
+            
             document.getElementById('sub-min-input').value = Math.max(1, Math.ceil(matchSeconds/60));
             document.getElementById('sub-modal').style.display = 'flex';
         }
 
         window.confirmSub = async () => {
-            let pOut = document.getElementById('sub-out-select').value; let pIn = document.getElementById('sub-in-select').value;
+            let pOut = document.getElementById('sub-out-select').value;
+            let pIn = document.getElementById('sub-in-select').value;
             let min = document.getElementById('sub-min-input').value || Math.max(1, Math.ceil(matchSeconds/60));
             if(!pOut || !pIn) return alert("Select both players.");
+            
             matchData.subsEvents[currentSubTeam].push({ out: pOut, in: pIn, minute: min });
             await updateDoc(doc(db, "matches", matchId), { subsEvents: matchData.subsEvents });
-            document.getElementById('sub-modal').style.display = 'none'; alert("Sub Recorded!");
+            document.getElementById('sub-modal').style.display = 'none';
+            alert("Sub Recorded!");
         }
 
         // --- CLOCK & PHASE ENGINE ---
@@ -325,6 +345,7 @@
                 case '2H':
                     if(!confirm("End the 2nd Half?")) return;
                     matchData.status = 'FT'; matchSeconds = 5400; 
+                    // NO EXTRA TIME IF ONE TEAM IS WINNING
                     if(isKnockout && matchData.scoreA === matchData.scoreB) { btn.innerText = "Start Extra Time"; document.getElementById('clock-controls').style.display='flex'; }
                     else { triggerEndMatch(); return; }
                     break;
@@ -350,22 +371,7 @@
             await updateDoc(doc(db, "matches", matchId), { status: matchData.status, rawSeconds: matchSeconds });
         }
 
-        async function triggerEndMatch() {
-            // Auto Advance Bracket if Official
-            if(matchData.isOfficial && matchData.bracketNode) {
-                let winnerId = null;
-                if(matchData.scoreA > matchData.scoreB) winnerId = matchData.teamA.id;
-                else if(matchData.scoreB > matchData.scoreA) winnerId = matchData.teamB.id;
-                else if(matchData.penalties.A > matchData.penalties.B) winnerId = matchData.teamA.id;
-                else if(matchData.penalties.B > matchData.penalties.A) winnerId = matchData.teamB.id;
-
-                if(winnerId) {
-                    let tDoc = await getDoc(doc(db, "tournaments", matchData.tournamentId));
-                    // Basic Auto progression if we ever implement full nested tree in DB. 
-                    // For now, the user can just schedule the next node visually in the Bracket UI.
-                }
-            }
-
+        function triggerEndMatch() {
             const sel = document.getElementById('motm-select'); sel.innerHTML = '';
             const optA = document.createElement('optgroup'); optA.label = matchData.teamA.name; matchData.lineupA.starters.forEach(p=>{if(p.name) optA.appendChild(new Option(p.name, p.name))}); sel.appendChild(optA);
             const optB = document.createElement('optgroup'); optB.label = matchData.teamB.name; matchData.lineupB.starters.forEach(p=>{if(p.name) optB.appendChild(new Option(p.name, p.name))}); sel.appendChild(optB);
@@ -401,7 +407,8 @@
         }
 
         window.updatePossession = async (changedTeam) => {
-            let valA = parseInt(document.getElementById('posA').value) || 0; let valB = parseInt(document.getElementById('posB').value) || 0;
+            let valA = parseInt(document.getElementById('posA').value) || 0;
+            let valB = parseInt(document.getElementById('posB').value) || 0;
             if (changedTeam === 'A') { valB = 100 - valA; document.getElementById('posB').value = valB; } else { valA = 100 - valB; document.getElementById('posA').value = valA; }
             matchData.stats.A.possession = valA; matchData.stats.B.possession = valB;
             await updateDoc(doc(db, "matches", matchId), { "stats.A.possession": valA, "stats.B.possession": valB });
@@ -436,11 +443,15 @@
 
         window.saveEvent = async () => {
             const team = pendingStat.team; const key = pendingStat.key;
-            const p = document.getElementById('ev-player').value || "Unknown"; const m = document.getElementById('ev-min').value || "";
+            const p = document.getElementById('ev-player').value || "Unknown"; 
+            const m = document.getElementById('ev-min').value || "";
+            
             if(key === 'goals') { 
                 const ast = document.getElementById('ev-assist').value;
                 matchData.stats[team].scorers.push({name: p, minute: m, assist: ast}); matchData[`score${team}`]++; 
-            } else { matchData.stats[team][key].push({name: p, minute: m}); }
+            } 
+            else { matchData.stats[team][key].push({name: p, minute: m}); }
+            
             document.getElementById('event-modal').style.display='none'; updateStatDisplays();
             await updateDoc(doc(db, "matches", matchId), { stats: matchData.stats, scoreA: matchData.scoreA, scoreB: matchData.scoreB });
         }
@@ -458,7 +469,7 @@
             await updateDoc(doc(db, "matches", matchId), { commentary: matchData.commentary }); document.getElementById('comm-input').value = ''; alert("Commentary pushed live!");
         }
 
-        // --- GRAPHIC EXPORT ---
+        // --- EXPORT MULTIPLE GRAPHICS ---
         window.exportImage = (title) => {
             document.getElementById('graphic-header-text').innerText = title;
             document.getElementById('graphic-tournament').innerText = matchData.tournamentName + " " + matchData.tournamentPhase;
