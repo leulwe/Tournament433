@@ -194,10 +194,13 @@
             <div class="mc-time" id="mc-clock">Pending</div>
             
             <div id="mc-admin-buttons" style="display:none; margin-top:20px; gap:10px; justify-content:center; flex-wrap:wrap;">
-                <button style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="launchBroadcast()">🔴 Broadcast Match</button>
-                <button style="background:#c0392b; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="deleteCurrentMatch()">🗑️ Delete</button>
-            </div>
-        </div>
+    <button style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="launchBroadcast()">🔴 Broadcast Match</button>
+    
+    <!-- THIS IS THE NEWLY ADDED BUTTON -->
+    <button id="mc-export-fixture" style="background:#3498db; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer; display:none;" onclick="exportFixtureImage()">📥 Save Fixture</button>
+    
+    <button style="background:#c0392b; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="deleteCurrentMatch()">🗑️ Delete</button>
+</div>
         
         <div class="mc-nav">
             <div class="mc-tab active" onclick="switchMcTab('overview', this)">Overview</div>
@@ -630,15 +633,22 @@
                 document.getElementById('mc-logo-a').src = m.teamA.logo; document.getElementById('mc-name-a').innerHTML = `${m.teamA.name} ${rAHtml}`;
                 document.getElementById('mc-logo-b').src = m.teamB.logo; document.getElementById('mc-name-b').innerHTML = `${rBHtml} ${m.teamB.name}`;
                 
-                if(m.status === 'Pending') {
-                    document.getElementById('mc-score-a').innerText = '-'; document.getElementById('mc-score-b').innerText = '-';
-                    document.getElementById('mc-clock').innerText = "Fixture: " + m.timeInfo;
-                    document.getElementById('mc-pens').style.display = 'none';
-                } else {
-                    document.getElementById('mc-score-a').innerText = m.scoreA || 0; document.getElementById('mc-score-b').innerText = m.scoreB || 0;
-                    document.getElementById('mc-clock').innerText = getDisplayMinute(m.status, m.rawSeconds);
-                    if(m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0))) { document.getElementById('mc-pens').innerText = `(Pen: ${m.penalties?.A||0} - ${m.penalties?.B||0})`; document.getElementById('mc-pens').style.display = 'block'; } else { document.getElementById('mc-pens').style.display = 'none'; }
-                }
+if(m.status === 'Pending') {
+    document.getElementById('mc-score-a').innerText = '-'; document.getElementById('mc-score-b').innerText = '-';
+    document.getElementById('mc-clock').innerText = "Fixture: " + m.timeInfo;
+    document.getElementById('mc-pens').style.display = 'none';
+    
+    // ✅ NEW: Show the button if the match is pending
+    document.getElementById('mc-export-fixture').style.display = 'block';
+
+} else {
+    document.getElementById('mc-score-a').innerText = m.scoreA || 0; document.getElementById('mc-score-b').innerText = m.scoreB || 0;
+    document.getElementById('mc-clock').innerText = getDisplayMinute(m.status, m.rawSeconds);
+    if(m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0))) { document.getElementById('mc-pens').innerText = `(Pen: ${m.penalties?.A||0} - ${m.penalties?.B||0})`; document.getElementById('mc-pens').style.display = 'block'; } else { document.getElementById('mc-pens').style.display = 'none'; }
+
+    // ✅ NEW: Hide the button for live or finished matches
+    document.getElementById('mc-export-fixture').style.display = 'none';
+}
                 document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none';
 
                 const buildStat = (lbl, vA, vB, pct) => { let tot = vA+vB||1; return `<div class="stat-bar-container"><div class="stat-labels"><span>${vA}${pct?'%':''}</span><span style="color:#aaa;">${lbl}</span><span>${vB}${pct?'%':''}</span></div><div class="bar-bg"><div class="bar-fill-a" style="width:${(vA/tot)*100}%"></div><div class="bar-fill-b" style="width:${(vB/tot)*100}%"></div></div></div>`; }
