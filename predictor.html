@@ -259,6 +259,58 @@
             .barcode { font-size: 35px; width: 100%; text-align: center; }
             .header { text-align: center; }
         }
+        /* --- BARRIER OVERLAY --- */
+#r16-barrier {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1a1a2e; /* Matches your body background */
+    z-index: 9999; /* Higher than everything else */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+#r16-barrier h1 {
+    font-family: 'Oswald', sans-serif;
+    font-size: clamp(32px, 10vw, 54px);
+    color: #00a8ff;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+#r16-barrier p {
+    font-family: 'Roboto', sans-serif;
+    color: white;
+    opacity: 0.7;
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+.loader {
+    margin-top: 30px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: #00a8ff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Add this class to hide the barrier later */
+.hidden {
+    display: none !important;
+}
     </style>
 </head>
 <body>
@@ -267,7 +319,11 @@
         <h1 style="font-family: 'Oswald'; color: #00a8ff;">Waiting for the R16</h1>
         <p style="opacity: 0.7;">The prediction bracket will open soon.</p>
     </div>
-
+    <div id="r16-barrier">
+    <h1>Waiting for R16</h1>
+    <p>The prediction bracket will unlock once the Round of 16 teams are confirmed.</p>
+    <div class="loader"></div>
+</div>
     <div id="ticket-wrapper">
         <div class="ticket-main">
             <div class="header">
