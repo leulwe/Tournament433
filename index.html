@@ -293,6 +293,8 @@
     <div id="modal-tourney" class="modal">
         <div class="modal-content">
             <h2>Manage Tournament</h2>
+            <label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Tournament Logo (Optional)</label>
+            <input type="file" id="t-logo" accept="image/*">
             <input type="text" id="t-name" placeholder="Name (e.g. Freshman 2026)">
             <select id="t-type"><option value="Group Stage">Group Stage</option><option value="Knockout">Knockout Phase</option></select>
             <div id="t-size-box" style="display:none;"><select id="t-size"><option value="4">4 Teams (Semi-Finals)</option><option value="8">8 Teams (Quarter-Finals)</option><option value="16" selected>16 Teams (R16)</option><option value="32">32 Teams (R32)</option></select></div>
@@ -325,10 +327,11 @@
     </div>
     
     <!-- Match Modal for FRIENDLIES (From matches tab) -->
-    <div id="modal-match" class="modal"><div class="modal-content"><h2>Schedule Match (Friendly)</h2><select id="m-tourney" onchange="loadTeamsForMatch(this.value, 'm-teamA', 'm-teamB')"></select><select id="m-teamA"><option>Home Team</option></select><select id="m-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="m-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="m-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createMatch(false)">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <!-- Match Modal for FRIENDLIES -->
+    <div id="modal-match" class="modal"><div class="modal-content"><h2>Schedule Match (Friendly)</h2><select id="m-tourney" onchange="loadTeamsForMatch(this.value, 'm-teamA', 'm-teamB')"></select><select id="m-teamA"><option>Home Team</option></select><select id="m-teamB"><option>Away Team</option></select><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Match Date</label><input type="date" id="m-date" style="margin-bottom:15px;"><div style="display:flex; gap:10px;"><select id="m-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="m-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createMatch(false)">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
     
-    <!-- Match Modal for OFFICIAL BRACKET (From Bracket tab) -->
-    <div id="modal-bracket-match" class="modal"><div class="modal-content"><h2 id="bm-title">Schedule Official Match</h2><select id="bm-teamA"><option>Home Team</option></select><select id="bm-teamB"><option>Away Team</option></select><div style="display:flex; gap:10px;"><select id="bm-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="bm-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createBracketMatch()">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
+    <!-- Match Modal for OFFICIAL BRACKET -->
+    <div id="modal-bracket-match" class="modal"><div class="modal-content"><h2 id="bm-title">Schedule Official Match</h2><select id="bm-teamA"><option>Home Team</option></select><select id="bm-teamB"><option>Away Team</option></select><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Match Date</label><input type="date" id="bm-date" style="margin-bottom:15px;"><div style="display:flex; gap:10px;"><select id="bm-weather-icon" style="flex:0.3;"><option value="☀️">☀️</option><option value="🌤️">🌤️</option><option value="⛅">⛅</option><option value="☁️">☁️</option><option value="🌧️">🌧️</option><option value="⛈️">⛈️</option><option value="❄️">❄️</option><option value="🌫️">🌫️</option><option value="🌙">🌙</option><option value="☁️🌙">☁️🌙</option></select><input type="text" id="bm-time" placeholder="Time/Info (e.g. 18:00)" style="flex:0.7; margin-bottom:15px;"></div><button onclick="createBracketMatch()">Schedule Fixture</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
     <div id="modal-news" class="modal"><div class="modal-content"><h2>Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><button onclick="postNews()">Post News</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
@@ -399,7 +402,8 @@
                 // Official matches only
                 let tMatches = allMatches.filter(m => m.tournamentName === tourney.name && m.isOfficial);
                 
-                html += `<div class="bracket-box"><h4 style="margin-top:0; color:var(--primary); text-transform:uppercase;">${tourney.name}</h4>`;
+                let tLogo = tourney.logo ? `<img src="${tourney.logo}" style="width:25px; height:25px; object-fit:contain; background:#fff; border-radius:50%; vertical-align:middle; margin-right:8px;">` : '';
+                html += `<div class="bracket-box"><h4 style="margin-top:0; color:var(--primary); text-transform:uppercase; display:flex; align-items:center;">${tLogo}${tourney.name}</h4>`;
                 
                 if(tourney.type.toLowerCase().includes('group')) {
                     let groups =['A','B','C','D','E','F','G','H'];
@@ -505,12 +509,13 @@
             await addDoc(collection(db, "tournaments"), { name: document.getElementById('t-name').value, type: document.getElementById('t-type').value, bracketSize: size, createdAt: new Date() }); 
             document.getElementById('modal-tourney').style.display='none'; 
         }
-        window.deleteTournament = async () => {
-            let tId = document.getElementById('t-del-sel').value; if(!tId || tId==='Select to Delete...') return;
-            if(confirm("Delete this tournament and ALL its teams and matches?")) {
-                await deleteDoc(doc(db, "tournaments", tId));
-                document.getElementById('modal-tourney').style.display='none';
-            }
+        window.createTournament = async () => { 
+            const file = document.getElementById('t-logo').files[0]; 
+            let logoBase64 = file ? await compressImg(file, 200) : null;
+            let size = document.getElementById('t-type').value === 'Knockout' ? parseInt(document.getElementById('t-size').value) : 0; 
+            await addDoc(collection(db, "tournaments"), { name: document.getElementById('t-name').value, type: document.getElementById('t-type').value, bracketSize: size, logo: logoBase64, createdAt: new Date() }); 
+            document.getElementById('modal-tourney').style.display='none'; 
+        }
         }
 
         // Roster
@@ -600,7 +605,8 @@
 
                 let cleanRosterA = (tA.roster ||[]).map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
                 let cleanRosterB = (tB.roster ||[]).map(p => ({ name: p.name, pos: p.pos, isCap: p.isCap || false }));
-
+                let dateStr = document.getElementById(isOfficial ? 'bm-date' : 'm-date').value || new Date().toISOString().split('T')[0];
+                let timeStr = document.getElementById(isOfficial ? 'bm-weather-icon' : 'm-weather-icon').value + " " + document.getElementById(isOfficial ? 'bm-time' : 'm-time').value;
                 await addDoc(collection(db, "matches"), {
                     tournamentId: tourney.id, tournamentName: tourney.name, tournamentPhase: tourney.type, bracketSize: tourney.bracketSize || 4, isOfficial: isOfficial, bracketNode: isOfficial ? activeBracketNode : null,
                     teamA: { id: tA.id, name: tA.name, logo: tA.logo || "" }, teamB: { id: tB.id, name: tB.name, logo: tB.logo || "" },
@@ -625,55 +631,19 @@
         window.deleteNews = async (id) => { if(confirm("Delete this post?")) { await deleteDoc(doc(db, "announcements", id)); } }
 
         // LISTENERS
-        onSnapshot(query(collection(db, "tournaments")), snap => {
-            allTournaments = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            let dSel = document.getElementById('t-del-sel'); dSel.innerHTML = '<option>Select to Delete...</option>';
-            allTournaments.forEach(t => dSel.add(new Option(t.name, t.id)));
-        });
-        
-        const renderTeamsTab = () => {
-            let html = ''; allTeams.forEach(t => {
-                html += `<div class="match-card" style="text-align:center; position:relative;">
-                            ${isAdmin ? `<button style="position:absolute; top:10px; right:10px; background:#3498db; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;" onclick="openTeamModal('${t.id}')">Edit</button>` : ''}
-                            <div onclick="viewTeamProfile('${t.id}')">
-                                <img src="${t.logo}" style="width:50px; height:50px; border-radius:50%; background:#fff; object-fit:contain; margin-bottom:10px;">
-                                <div style="font-weight:bold; font-size:16px;">${t.name}</div>
-                            </div>
-                         </div>`;
-            });
-            document.getElementById('teams-container').innerHTML = html;
-        }
-
-        onSnapshot(query(collection(db, "teams")), snap => { allTeams = snap.docs.map(d => ({id: d.id, ...d.data()})); renderTeamsTab(); });
-        
-        onSnapshot(query(collection(db, "announcements"), orderBy("date", "desc")), snap => {
-            let html = ''; snap.forEach(d => { let n = d.data(); 
-                html += `<div style="background:var(--bg-panel); padding:15px; border-left:4px solid var(--primary); margin-bottom:15px; border-radius:4px;">
-                            ${isAdmin?`<button class="del-btn" style="float:right; border:none; padding:5px; border-radius:3px; color:#fff; cursor:pointer;" onclick="deleteNews('${d.id}')">Delete</button>`:''}
-                            <div style="font-size:12px; color:var(--primary); margin-bottom:5px;">${n.date}</div>
-                            <div style="font-weight:bold; font-size:18px; margin-bottom:8px;">${n.title}</div>
-                            ${n.image ? `<img src="${n.image}" style="width:100%; border-radius:4px; margin-bottom:10px; max-height:400px; object-fit:contain; background:#000;">` : ''}
-                            <div style="color:var(--text-muted); font-size:14px; line-height:1.4; white-space:pre-wrap;">${n.body}</div>
-                         </div>`; 
-            });
-            document.getElementById('news-container').innerHTML = html;
-        });
-
-        const getDisplayMinute = (status, rawSeconds) => {
-            if(status === 'Pending') return 'UPCOMING';
-            if(['HT', 'FT', 'PEN', 'FINISHED'].includes(status)) return status;
-            let min = Math.ceil(rawSeconds / 60) || 1;
-            if(status === '1H' && min > 45) return `45+${min-45}'`;
-            if(status === '2H' && min > 90) return `90+${min-90}'`;
-            if(status === 'ET1' && min > 105) return `105+${min-105}'`;
-            if(status === 'ET2' && min > 120) return `120+${min-120}'`;
-            return min + "'";
-        }
-
-        onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc")), snap => {
-            allMatches = snap.docs.map(d => ({id: d.id, ...d.data()})); recalculateGlobalStats();
+        // Note: Removed orderBy from query so we can custom sort by our new Dates client-side!
+        onSnapshot(query(collection(db, "matches")), snap => {
+            allMatches = snap.docs.map(d => ({id: d.id, ...d.data()})); 
             
-            // Show ALL Matches (Official and Friendlies) in the Matches tab
+            // Sort Descending by Date (Newest first)
+            allMatches.sort((a,b) => {
+                let dateA = a.matchDate || "1970-01-01"; let dateB = b.matchDate || "1970-01-01";
+                if(dateA !== dateB) return dateB.localeCompare(dateA); 
+                return (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0); // fallback
+            });
+            
+            recalculateGlobalStats();
+            
             let html = ''; allMatches.forEach(m => {
                 let badge = m.isOfficial ? `<div style="position:absolute; top:5px; right:5px; background:var(--gold); color:#000; font-size:10px; padding:2px 5px; border-radius:3px; font-weight:bold;">OFFICIAL</div>` : `<div style="position:absolute; top:5px; right:5px; background:#3498db; color:#fff; font-size:10px; padding:2px 5px; border-radius:3px; font-weight:bold;">FRIENDLY</div>`;
                 let s = m.status === 'Pending' ? m.timeInfo.split(' ')[1] || m.timeInfo : `${m.scoreA||0} - ${m.scoreB||0}`;
@@ -684,7 +654,7 @@
 
                 html += `<div class="match-card" onclick="openMatchCenter('${m.id}')">
                             ${badge}
-                            <div class="match-card-header">${m.tournamentName} • ${m.tournamentPhase}</div>
+                            <div class="match-card-header">${m.tournamentName} • ${m.tournamentPhase} • <span style="color:var(--gold);">${m.matchDate || 'Date TBD'}</span></div>
                             <div class="match-row">
                                 <div class="team-info"><img src="${m.teamA?.logo}" class="team-logo">${m.teamA?.name} ${rAHtml}</div>
                                 <div style="text-align:center;"><div class="score-box">${s}</div>${penTxt}</div>
