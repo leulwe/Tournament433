@@ -19,6 +19,7 @@
             color: white;
         }
 
+
         /* --- TICKET STYLING --- */
         #ticket-wrapper {
             filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6));
@@ -243,7 +244,8 @@
         .btn-share:hover {
             background-color: #2xc361;
             transform: translateY(-2px);
-        /* Overlay to hide the page */
+        }
+	/* Overlay to hide the page */
 #waiting-overlay {
     position: fixed;
     top: 0;
@@ -273,11 +275,10 @@
     color: rgba(255, 255, 255, 0.6);
     margin-top: 10px;
 }
-        }
     </style>
 </head>
 <body>
-  <div id="waiting-overlay">
+	<div id="waiting-overlay">
     <h1>Waiting for the R16</h1>
     <p>The prediction bracket will open soon.</p>
 </div>
@@ -290,10 +291,6 @@
 
             <div class="bracket-wrapper">
                 <div class="column">
-                    <div class="match">
-                        <div class="team" onclick="advance(this, 'qf1_1')">SECTION 13</div>
-                        <div class="team" onclick="advance(this, 'qf1_1')">PLAYOFF 4</div>
-                    </div>
                     <div class="match">
                         <div class="team" onclick="advance(this, 'qf1_2')">SECTION 25</div>
                         <div class="team" onclick="advance(this, 'qf1_2')">SECTION 06</div>
@@ -321,6 +318,10 @@
                     <div class="match">
                         <div class="team" onclick="advance(this, 'qf4_2')">SECTION 27</div>
                         <div class="team" onclick="advance(this, 'qf4_2')">PLAYOFF 1</div>
+                    </div>
+                    <div class="match">
+                        <div class="team" onclick="advance(this, 'qf4_2')">SECTION 23</div>
+                        <div class="team" onclick="advance(this, 'qf4_2')">SSECTION09</div>
                     </div>
                 </div>
 
