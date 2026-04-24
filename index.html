@@ -113,12 +113,18 @@
 <body>
 
     <!-- Main Header -->
+    <!-- Main Header -->
     <div class="header" id="main-header">
         <div>
             <h1 class="header-title">ScoreApp</h1>
             <p class="header-subtitle">Tournament Platform</p>
         </div>
-        <button style="background:none; border:none; font-size:24px; color:#fff; cursor:pointer;" onclick="document.getElementById('login-modal').style.display='flex'">⋮</button>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <!-- NEW PREDICTOR BUTTON -->
+            <button style="background:var(--primary); color:#000; border:none; font-weight:bold; padding:6px 12px; border-radius:5px; cursor:pointer; font-size:14px;" onclick="window.location.href='predictor.html'">🎯 Predictor</button>
+            
+            <button style="background:none; border:none; font-size:24px; color:#fff; cursor:pointer;" onclick="document.getElementById('login-modal').style.display='flex'">⋮</button>
+        </div>
     </div>
 
     <!-- Main Navigation -->
@@ -133,12 +139,18 @@
     <!-- Main Content -->
     <div class="content" id="main-content">
         <!-- Admin Bar -->
+        <!-- Admin Bar -->
         <div class="admin-controls" id="admin-panel">
             <h3 style="margin-top:0; color:#3498db; width:100%;">🛠️ Admin Platform</h3>
             <button onclick="document.getElementById('modal-tourney').style.display='flex'">1. Create Tournament</button>
             <button onclick="openTeamModal()">2. Register Squad</button>
             <button onclick="openMatchModal()">3. Schedule Match (Friendly)</button>
             <button onclick="document.getElementById('modal-news').style.display='flex'">4. Post News</button>
+            
+            <!-- NEW ADMIN LINKS -->
+            <button onclick="window.location.href='possession.html'" style="background:#8e44ad;">📊 Possession Tracker</button>
+            <button onclick="window.location.href='photo.html'" style="background:#e67e22;">📸 Photo Tool</button>
+            
             <button onclick="logoutAdmin()" style="background:#e74c3c;">Log Out</button>
         </div>
 
