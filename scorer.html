@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Scorers & Assisters</title>
+    <style>
+        /* General App Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex: 1;
+            min-width: 80px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover { background-color: #2980b9; }
+        .btn-danger { background-color: #e74c3c; padding: 5px 8px; font-size: 0.9em; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .btn-update { background-color: #2ecc71; padding: 5px 8px; font-size: 0.9em; }
+        .btn-update:hover { background-color: #27ae60; }
+        .btn-telegram { background-color: #0088cc; width: 100%; margin-top: 10px; }
+
+        /* Controls / Sorting */
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        /* Player List Styles */
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .player-row:hover { background-color: #fafafa; }
+        .player-info { font-size: 1.1em; flex: 1; min-width: 250px; }
+        .player-name { font-weight: bold; }
+        .player-stats { color: #555; font-size: 0.9em; margin-top: 4px; }
+        .stat-highlight { font-weight: bold; color: #e67e22; }
+        
+        .actions { display: flex; gap: 5px; flex-wrap: wrap; align-items: center;}
+        .divider { width: 1px; height: 20px; background: #ccc; margin: 0 5px; }
+
+        /* Telegram / Black & White Paper Styles */
+        #telegram-output {
+            display: none;
+            background-color: white;
+            color: black;
+            font-family: monospace;
+            padding: 20px;
+            border: 2px solid black;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .no-print { display: none !important; }
+            .player-row { border-bottom: 1px solid black; padding: 5px 0; }
+            .player-info { font-family: monospace; font-size: 14pt; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print">
+        <h1>🏆 Player Leaderboard</h1>
+
+        <div class="card">
+            <form id="addForm">
+                <div class="form-group">
+                    <input type="text" id="playerName" placeholder="Player Name" style="flex: 2;" required>
+                    <input type="number" id="playerGoals" placeholder="Goals" required min="0">
+                    <input type="number" id="playerAssists" placeholder="Assists" required min="0">
+                    <button type="submit">Add</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="controls-header">
+                <h2 style="margin: 0;">Leaderboard</h2>
+                <div>
+                    <label for="sortMethod">Rank By: </label>
+                    <select id="sortMethod" onchange="changeSort()">
+                        <option value="ga">G/A (Total)</option>
+                        <option value="goals">Goals</option>
+                        <option value="assists">Assists</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="leaderboard"></div>
+            
+            <button class="btn-telegram" onclick="generateTelegramPost()">Generate B/W Paper Post for Telegram</button>
+            <button class="btn-telegram" style="background: #555;" onclick="window.print()">Print to Paper / PDF</button>
+        </div>
+    </div>
+
+    <div id="telegram-output"></div>
+
+    <script>
+        // Load data from LocalStorage or start with an empty array
+        let players = JSON.parse(localStorage.getItem('scorersData')) ||[];
+        let currentSort = 'ga'; // default sorting method
+
+        function changeSort() {
+            currentSort = document.getElementById('sortMethod').value;
+            renderBoard();
+        }
+
+        // Function to render the leaderboard
+        function renderBoard() {
+            const board = document.getElementById('leaderboard');
+            board.innerHTML = '';
+
+            // Sort players based on the selected criteria
+            players.sort((a, b) => {
+                const goalsA = a.goals || 0;
+                const assistsA = a.assists || 0;
+                const gaA = goalsA + assistsA;
+
+                const goalsB = b.goals || 0;
+                const assistsB = b.assists || 0;
+                const gaB = goalsB + assistsB;
+                
+                if (currentSort === 'ga') {
+                    if (gaB !== gaA) return gaB - gaA; // Primary: Total G/A
+                    if (goalsB !== goalsA) return goalsB - goalsA; // Tiebreaker: Goals
+                    return assistsB - assistsA;
+                } 
+                else if (currentSort === 'goals') {
+                    if (goalsB !== goalsA) return goalsB - goalsA; // Primary: Goals
+                    return assistsB - assistsA; // Tiebreaker: Assists
+                } 
+                else if (currentSort === 'assists') {
+                    if (assistsB !== assistsA) return assistsB - assistsA; // Primary: Assists
+                    return goalsB - goalsA; // Tiebreaker: Goals
+                }
+            });
+
+            players.forEach((player, index) => {
+                const goals = player.goals || 0;
+                const assists = player.assists || 0;
+                const totalGA = goals + assists;
+
+                // Highlight the stat that is currently being ranked
+                let statsHtml = ``;
+                if (currentSort === 'ga') {
+                    statsHtml = `<span class="stat-highlight">${totalGA} G/A</span> (${goals} G, ${assists} A)`;
+                } else if (currentSort === 'goals') {
+                    statsHtml = `<span class="stat-highlight">${goals} Goals</span> (${assists} A, ${totalGA} G/A)`;
+                } else if (currentSort === 'assists') {
+                    statsHtml = `<span class="stat-highlight">${assists} Assists</span> (${goals} G, ${totalGA} G/A)`;
+                }
+
+                const row = document.createElement('div');
+                row.className = 'player-row';
+                row.innerHTML = `
+                    <div class="player-info">
+                        <div class="player-name">${index + 1}. ${player.name}</div>
+                        <div class="player-stats">${statsHtml}</div>
+                    </div>
+                    <div class="actions no-print">
+                        <button class="btn-update" onclick="updateStat(${player.id}, 'goals', 1)" title="Add Goal">+G</button>
+                        <button class="btn-danger" onclick="updateStat(${player.id}, 'goals', -1)" title="Remove Goal">-G</button>
+                        <div class="divider"></div>
+                        <button class="btn-update" onclick="updateStat(${player.id}, 'assists', 1)" title="Add Assist">+A</button>
+                        <button class="btn-danger" onclick="updateStat(${player.id}, 'assists', -1)" title="Remove Assist">-A</button>
+                        <div class="divider"></div>
+                        <button class="btn-danger" style="background:#7f8c8d" onclick="deletePlayer(${player.id})" title="Delete Player">Del</button>
+                    </div>
+                `;
+                board.appendChild(row);
+            });
+
+            // Save to LocalStorage
+            localStorage.setItem('scorersData', JSON.stringify(players));
+        }
+
+        // Add a new player
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('playerName');
+            const goalsInput = document.getElementById('playerGoals');
+            const assistsInput = document.getElementById('playerAssists');
+            
+            players.push({
+                id: Date.now(), // Unique ID
+                name: nameInput.value,
+                goals: parseInt(goalsInput.value) || 0,
+                assists: parseInt(assistsInput.value) || 0
+            });
+
+            nameInput.value = '';
+            goalsInput.value = '';
+            assistsInput.value = '';
+            renderBoard();
+        });
+
+        // Update stats
+        function updateStat(id, statType, change) {
+            const player = players.find(p => p.id === id);
+            if (player) {
+                if (player[statType] === undefined) player[statType] = 0;
+                player[statType] += change;
+                if (player[statType] < 0) player[statType] = 0; // Prevent negative numbers
+                renderBoard();
+            }
+        }
+
+        // Delete player
+        function deletePlayer(id) {
+            if(confirm("Are you sure you want to delete this player?")) {
+                players = players.filter(p => p.id !== id);
+                renderBoard();
+            }
+        }
+
+        // Generate Telegram Post
+        function generateTelegramPost() {
+            const outputBox = document.getElementById('telegram-output');
+            
+            // Dynamic Title based on sort method
+            let sortTitle = "";
+            if (currentSort === 'ga') sortTitle = "TOTAL G/A";
+            else if (currentSort === 'goals') sortTitle = "GOALS";
+            else if (currentSort === 'assists') sortTitle = "ASSISTS";
+
+            let text = `🏆 LEADERBOARD (RANKED BY ${sortTitle})\n`;
+            text += "=================================\n\n";
+            
+            players.forEach((player, index) => {
+                const goals = player.goals || 0;
+                const assists = player.assists || 0;
+                const ga = goals + assists;
+                
+                text += `${index + 1}. ${player.name.toUpperCase()}\n`;
+                
+                if (currentSort === 'ga') {
+                    text += `   ↳ ${ga} G/A (${goals}G, ${assists}A)\n`;
+                } else if (currentSort === 'goals') {
+                    text += `   ↳ ${goals} GOALS (${assists}A, ${ga} G/A)\n`;
+                } else if (currentSort === 'assists') {
+                    text += `   ↳ ${assists} ASSISTS (${goals}G, ${ga} G/A)\n`;
+                }
+                text += "\n";
+            });
+            
+            text += "=================================";
+            
+            outputBox.innerText = text;
+            outputBox.style.display = 'block';
+
+            // Optional: Automatically copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Text format generated and copied to your clipboard!");
+            }).catch(err => {
+                console.log("Clipboard writing failed. Text is available at the bottom of the page.");
+            });
+        }
+
+        // Initial render
+        renderBoard();
+    </script>
+</body>
+</html>

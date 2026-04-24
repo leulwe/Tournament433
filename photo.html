@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squad Face Cropper (Auto + Manual)</title>
+    
+    <!-- Load face-api.js from CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --background: #F3F4F6;
+            --surface: #FFFFFF;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .header { margin-bottom: 20px; }
+        .header h1 { margin: 0 0 10px 0; color: #111; }
+        
+        /* Upload Button */
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .btn {
+            border: none;
+            color: white;
+            background-color: var(--primary);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn:hover { background-color: #4338ca; }
+        .btn:disabled { background-color: #9CA3AF; cursor: not-allowed; }
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0; top: 0;
+            opacity: 0; cursor: pointer;
+        }
+        
+        #status {
+            margin: 15px 0;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #4B5563;
+        }
+
+        /* Image and Manual Crop Container */
+        #interactive-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #image-container {
+            position: relative;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: crosshair;
+            user-select: none;
+            touch-action: none; /* Prevent scrolling while cropping on mobile */
+        }
+        #source-preview {
+            display: block;
+            max-width: 100%;
+            max-height: 500px;
+            pointer-events: none; /* Let container handle mouse events */
+        }
+        #selection-box {
+            position: absolute;
+            border: 2px dashed #EF4444;
+            background-color: rgba(239, 68, 68, 0.2);
+            display: none;
+            pointer-events: none;
+        }
+        
+        #manual-hint {
+            display: none;
+            background: #E0E7FF;
+            color: #3730A3;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Generated Gallery */
+        #gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .face-card {
+            background: var(--surface);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        canvas {
+            border-radius: 8px;
+            margin-bottom: 12px;
+            max-width: 150px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .download-btn {
+            text-decoration: none;
+            background: #10B981;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .download-btn:hover { background: #059669; }
+        .delete-btn {
+            background: #EF4444;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .delete-btn:hover { background: #DC2626; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📸 Squad Face Cropper</h1>
+        <p>AI automatically crops faces. Missed someone? <b>Click & drag on the photo to manually crop!</b></p>
+    </div>
+
+    <div class="upload-btn-wrapper">
+        <button class="btn" id="uploadBtn" disabled>Loading AI Models...</button>
+        <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/webp" disabled />
+    </div>
+
+    <div id="status">Please wait while the AI models load...</div>
+
+    <div id="interactive-area">
+        <div id="image-container">
+            <!-- draggable="false" stops browsers from trying to drag the image file -->
+            <img id="source-preview" alt="Uploaded Photo" draggable="false" />
+            <div id="selection-box"></div>
+        </div>
+        <div id="manual-hint">💡 Tip: If the AI missed someone, just click and drag on the photo above to crop them!</div>
+    </div>
+    
+    <div id="gallery"></div>
+
+    <script>
+        // DOM Elements
+        const imageUpload = document.getElementById('imageUpload');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const status = document.getElementById('status');
+        const gallery = document.getElementById('gallery');
+        const imageContainer = document.getElementById('image-container');
+        const sourcePreview = document.getElementById('source-preview');
+        const selectionBox = document.getElementById('selection-box');
+        const manualHint = document.getElementById('manual-hint');
+
+        const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+
+        let currentImageObj = null; // Stores the raw Image object for cropping
+        let autoCropCount = 0;
+        let manualCropCount = 0;
+
+        // --- 1. Load AI Models ---
+        async function loadModels() {
+            try {
+                await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+                status.innerText = "✅ AI Models Loaded! Ready to process photos.";
+                status.style.color = "#10B981";
+                
+                imageUpload.disabled = false;
+                uploadBtn.disabled = false;
+                uploadBtn.innerText = "Choose Photo";
+            } catch (err) {
+                status.innerText = "❌ Failed to load AI models. Please check your internet connection.";
+                status.style.color = "#EF4444";
+            }
+        }
+        window.onload = loadModels;
+
+        // --- 2. Handle Image Upload & Auto Crop ---
+        imageUpload.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Reset UI
+            gallery.innerHTML = '';
+            autoCropCount = 0;
+            manualCropCount = 0;
+            imageContainer.style.display = 'none';
+            manualHint.style.display = 'none';
+            status.innerText = "🔍 Scanning image for faces... Please wait.";
+            status.style.color = "#4F46E5";
+
+            const imgUrl = URL.createObjectURL(file);
+            sourcePreview.src = imgUrl;
+
+            currentImageObj = new Image();
+            currentImageObj.src = imgUrl;
+            
+            currentImageObj.onload = async () => {
+                imageContainer.style.display = 'inline-block';
+                manualHint.style.display = 'block';
+
+                // Detect faces (minConfidence 0.4 handles slightly blurry faces well)
+                const detections = await faceapi.detectAllFaces(currentImageObj, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }));
+
+                if (detections.length === 0) {
+                    status.innerText = "⚠️ No faces found by AI. You can draw boxes manually below!";
+                    status.style.color = "#F59E0B";
+                    return;
+                }
+
+                status.innerText = `🎉 AI found ${detections.length} face(s)!`;
+                status.style.color = "#10B981";
+
+                // Auto-crop each detected face
+                detections.forEach((detection) => {
+                    const box = detection.box;
+                    
+                    // Add 25% padding around the detected face
+                    const padX = box.width * 0.25;
+                    const padY = box.height * 0.25;
+                    
+                    const x = Math.max(0, box.x - padX);
+                    const y = Math.max(0, box.y - padY);
+                    const width = Math.min(currentImageObj.width - x, box.width + padX * 2);
+                    const height = Math.min(currentImageObj.height - y, box.height + padY * 2);
+
+                    autoCropCount++;
+                    createCropCard(x, y, width, height, `AI Crop ${autoCropCount}`);
+                });
+            };
+        });
+
+        // --- 3. Manual Cropping Logic (Click & Drag) ---
+        let isDrawing = false;
+        let startX = 0;
+        let startY = 0;
+
+        // Utility to get normalized coordinates for both Mouse and Touch
+        function getPointerPos(e) {
+            const rect = imageContainer.getBoundingClientRect();
+            let clientX = e.clientX;
+            let clientY = e.clientY;
+            
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            }
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function handleStart(e) {
+            if (!currentImageObj) return;
+            isDrawing = true;
+            const pos = getPointerPos(e);
+            startX = pos.x;
+            startY = pos.y;
+            
+            selectionBox.style.left = startX + 'px';
+            selectionBox.style.top = startY + 'px';
+            selectionBox.style.width = '0px';
+            selectionBox.style.height = '0px';
+            selectionBox.style.display = 'block';
+        }
+
+        function handleMove(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); // Stop mobile scrolling while drawing
+            const pos = getPointerPos(e);
+            
+            // Calculate Box (handles dragging backwards too)
+            const left = Math.min(startX, pos.x);
+            const top = Math.min(startY, pos.y);
+            const width = Math.abs(pos.x - startX);
+            const height = Math.abs(pos.y - startY);
+
+            selectionBox.style.left = left + 'px';
+            selectionBox.style.top = top + 'px';
+            selectionBox.style.width = width + 'px';
+            selectionBox.style.height = height + 'px';
+        }
+
+        function handleEnd(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+            selectionBox.style.display = 'none';
+            
+            const displayWidth = parseFloat(selectionBox.style.width);
+            const displayHeight = parseFloat(selectionBox.style.height);
+            const displayLeft = parseFloat(selectionBox.style.left);
+            const displayTop = parseFloat(selectionBox.style.top);
+
+            // Minimum crop size to prevent accidental clicks
+            if (displayWidth > 20 && displayHeight > 20) {
+                
+                // Calculate scale (Preview size vs Actual original image size)
+                const scaleX = currentImageObj.width / sourcePreview.width;
+                const scaleY = currentImageObj.height / sourcePreview.height;
+
+                // Map CSS coordinates to Real Image coordinates
+                const realX = displayLeft * scaleX;
+                const realY = displayTop * scaleY;
+                const realW = displayWidth * scaleX;
+                const realH = displayHeight * scaleY;
+
+                manualCropCount++;
+                createCropCard(realX, realY, realW, realH, `Manual Crop ${manualCropCount}`);
+            }
+        }
+
+        // Attach Mouse Events
+        imageContainer.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        // Attach Touch Events (Mobile)
+        imageContainer.addEventListener('touchstart', handleStart, {passive: false});
+        window.addEventListener('touchmove', handleMove, {passive: false});
+        window.addEventListener('touchend', handleEnd);
+
+
+        // --- 4. Reusable Function to Build the Crop UI Card ---
+        function createCropCard(x, y, width, height, titleText) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // Draw cropped image onto canvas
+            context.drawImage(
+                currentImageObj,
+                x, y, width, height, // Source dimensions
+                0, 0, width, height  // Destination dimensions
+            );
+
+            // Create Card Container
+            const card = document.createElement('div');
+            card.className = 'face-card';
+
+            const title = document.createElement('div');
+            title.innerText = titleText;
+            title.style.marginBottom = '8px';
+            title.style.fontWeight = 'bold';
+
+            // Button Container
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group';
+
+            // Download Button
+            const downloadBtn = document.createElement('a');
+            downloadBtn.className = 'download-btn';
+            downloadBtn.innerText = '⬇️ Save';
+            downloadBtn.href = canvas.toDataURL('image/jpeg', 0.9);
+            downloadBtn.download = `${titleText.replace(/\s+/g, '-').toLowerCase()}.jpg`;
+
+            // Delete Button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerText = '❌';
+            deleteBtn.title = "Delete this crop";
+            deleteBtn.onclick = () => card.remove(); // Removes the card from UI
+
+            btnGroup.appendChild(downloadBtn);
+            btnGroup.appendChild(deleteBtn);
+
+            card.appendChild(title);
+            card.appendChild(canvas);
+            card.appendChild(btnGroup);
+            gallery.appendChild(card);
+        }
+    </script>
+</body>
+</html>
