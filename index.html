@@ -44,7 +44,8 @@
         <!-- Admin Bar -->
         <div class="admin-controls" id="admin-panel">
             <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px; height:20px; vertical-align:middle; margin-right:5px;"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>Admin Panel</h3>
-            <button onclick="document.getElementById('modal-tourney').style.display='flex'">Create Tournament</button>
+            <button id="btn-create-tourney" onclick="document.getElementById('modal-tourney').style.display='flex'">Create Tournament</button>
+            <button id="btn-pending-hosts" onclick="openPendingHostsModal()">Pending Hosts</button>
             <button onclick="openTeamModal()">Register Squad</button>
             <button onclick="openMatchModal()">Schedule Match</button>
             <button onclick="document.getElementById('modal-news').style.display='flex'">Post News</button>
@@ -256,7 +257,28 @@
                 <input type="checkbox" id="notif-news" onchange="toggleNotif('news', this.checked)" style="transform:scale(1.2);">
             </label>
         </div>
+        <div style="text-align:left; margin-bottom:16px;">
+            <label style="font-size:14px; font-weight:700; margin-bottom:12px; display:block;">Organize</label>
+            <button onclick="document.getElementById('modal-request-host').style.display='flex'; document.getElementById('settings-modal').style.display='none'" style="background:var(--bg-surface-2); color:var(--text-primary); border:1px solid var(--border); padding:10px; width:100%; border-radius:8px; cursor:pointer; text-align:left; font-weight:600;"><span style="margin-right:8px;">🏆</span> Request to Host Tournament</button>
+        </div>
         <button style="background:var(--bg-surface-3); color:var(--text-primary);" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
+    </div></div>
+    
+    <div id="modal-request-host" class="modal"><div class="modal-content">
+        <h2>Request to Host</h2>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:15px;">Become an organizer and get your own admin panel for your tournament.</p>
+        <input type="text" id="req-name" placeholder="Your Name">
+        <input type="email" id="req-email" placeholder="Your Email (for login)">
+        <input type="password" id="req-pass" placeholder="Desired Password">
+        <input type="text" id="req-tourney" placeholder="Tournament Name">
+        <button id="req-submit-btn" onclick="submitHostRequest()">Submit Request</button>
+        <button style="background:var(--bg-surface-3); color:var(--text-primary);" onclick="document.getElementById('modal-request-host').style.display='none'">Cancel</button>
+    </div></div>
+    
+    <div id="modal-admin-requests" class="modal"><div class="modal-content">
+        <h2>Pending Organizers</h2>
+        <div id="pending-hosts-list" style="max-height:60vh; overflow-y:auto; margin-bottom:10px;"></div>
+        <button style="background:var(--bg-surface-3); color:var(--text-primary);" onclick="document.getElementById('modal-admin-requests').style.display='none'">Close</button>
     </div></div>
 
     <!-- Schedule Existing Match Modal -->
@@ -337,27 +359,86 @@
     <!-- Hidden Fixture Graphic -->
     <div style="position: absolute; left: -9999px; top: 0; width: 0; height: 0; overflow: hidden;"><div id="fixture-graphic-area" style="width: 800px; height: 800px; background: linear-gradient(135deg, #0d283c 0%, #0d283c 40%, #173b2c 100%); position: relative; font-family: 'Segoe UI', sans-serif;"><div style="background: var(--primary); color: #000; text-align: center; padding: 15px; font-size: 26px; font-weight: 900; letter-spacing: 2px;">MATCH FIXTURE</div><div style="text-align: center; margin-top: 35px; color: #fff; font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px;">🏆 <span id="gfx-stage">R16 M1</span></div><div style="text-align: center; margin-top: 30px; font-size: 150px; font-weight: 900; font-style: italic; color: #fff; line-height: 1; letter-spacing: 5px;">VS</div><div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding: 25px 40px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); height: 50px;"><div style="display: flex; align-items: center; gap: 18px;"><img id="gfx-logo1" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="gfx-team1" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM A</div></div><div style="display: flex; align-items: center; gap: 18px; flex-direction: row-reverse;"><img id="gfx-logo2" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="gfx-team2" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM B</div></div></div><div style="text-align: center; margin-top: 70px; color: #fff;"><div id="gfx-time" style="font-size: 40px; font-weight: 900; margin-bottom: 20px; letter-spacing: 1px;">🕒 18:00</div></div></div></div>
 
+    <!-- Interactive Side Menu -->
+    <div id="side-menu-overlay" class="side-menu-overlay" onclick="closeSideMenu()"></div>
+    <div id="side-menu" class="side-menu">
+        <div class="side-menu-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px; height:20px;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> Menu</h3>
+            <button onclick="closeSideMenu()">✕</button>
+        </div>
+        <div class="side-menu-content">
+            <button onclick="switchTab('home'); closeSideMenu()"><span class="nav-icon">🏠</span> Home</button>
+            <button onclick="switchTab('matches'); closeSideMenu()"><span class="nav-icon">📅</span> Matches</button>
+            <button onclick="switchTab('tournaments'); closeSideMenu()"><span class="nav-icon">🏆</span> Tournaments</button>
+            <hr style="border-color:var(--border); margin:10px 0;">
+            <button onclick="document.getElementById('settings-modal').style.display='flex'; closeSideMenu()"><span class="nav-icon">⚙️</span> Settings</button>
+            <button onclick="document.getElementById('login-modal').style.display='flex'; closeSideMenu()"><span class="nav-icon">🔒</span> Admin Login</button>
+        </div>
+    </div>
+
     <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, deleteDoc, increment, getDocs, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, setDoc, deleteDoc, increment, getDocs, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyAwQduFWIpvvC8kvfcG4b3MX_LkZegAUvk", authDomain: "assist-24272.firebaseapp.com", projectId: "assist-24272" });
         const auth = getAuth(app); const db = getFirestore(app);
 
         let isAdmin = false; let allTeams =[]; let allTournaments =[]; let allMatches =[]; window.currentMatch = null; let selectedStarScore = 5; let editingTeamId = null; let globalStats = {};
         let activeBracketNode = null; let activeBracketTourney = null;
+        let userRole = 'fan'; let userTourneyId = null;
 
         // --- NEW THEME & NAV SYSTEM ---
         window.setTheme = (theme) => {
+            if (theme === 'system') {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
             document.documentElement.setAttribute('data-theme', theme);
+            document.body.setAttribute('data-theme', theme);
             localStorage.setItem('scoreapp-theme', theme);
             document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('selected'));
-            document.getElementById(`theme-${theme}`).classList.add('selected');
+            let opt = document.getElementById(`theme-${theme}`);
+            if(opt) opt.classList.add('selected');
         }
-        let savedTheme = localStorage.getItem('scoreapp-theme') || 'dark';
+        
+        let savedTheme = localStorage.getItem('scoreapp-theme') || 'system';
         setTheme(savedTheme);
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (localStorage.getItem('scoreapp-theme') === 'system' || !localStorage.getItem('scoreapp-theme')) {
+                setTheme('system');
+            }
+        });
+
+        // --- NEW THEME & NAV SYSTEM ---
+        window.openSideMenu = () => {
+            document.getElementById('side-menu-overlay').classList.add('show');
+            document.getElementById('side-menu').classList.add('open');
+        };
+        window.closeSideMenu = () => {
+            document.getElementById('side-menu-overlay').classList.remove('show');
+            document.getElementById('side-menu').classList.remove('open');
+        };
+        
+        let touchstartX = 0;
+        let touchendX = 0;
+        document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        function handleSwipe() {
+            let threshold = 50; 
+            if (touchstartX - touchendX > threshold) {
+                // Swiped left
+                window.openSideMenu();
+            }
+            if (touchendX - touchstartX > threshold) {
+                // Swiped right
+                window.closeSideMenu();
+            }
+        }
 
         window.switchTab = (id) => {
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -401,9 +482,15 @@
             if(!window.currentMatch) return;
             let date = document.getElementById('sched-date').value;
             let time = document.getElementById('sched-time').value;
-            document.getElementById('modal-schedule').style.display='none';
             
             let autoWeather = await getAutoWeather();
+            if (autoWeather.includes('🌧️') || autoWeather.includes('⛈️') || autoWeather.includes('❄️')) {
+                if(!confirm(`Bad weather forecast (${autoWeather}). Do you still want to schedule this match?`)) {
+                    return; // Cancel schedule, let them change time
+                }
+            }
+            
+            document.getElementById('modal-schedule').style.display='none';
             let timeStr = time ? autoWeather + ' ' + time : 'TBD';
             
             await updateDoc(doc(db, "matches", window.currentMatch.id), {
@@ -571,13 +658,7 @@
             localStorage.setItem('notif_'+type, state);
         };
 
-        window.setTheme = (theme) => {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('app-theme', theme);
-            document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('selected'));
-            let opt = document.getElementById('theme-' + theme);
-            if(opt) opt.classList.add('selected');
-        };
+        // Set theme removed from here to consolidate
 
         // Initialize Settings
         document.addEventListener('DOMContentLoaded', () => {
@@ -595,13 +676,47 @@
                 localStorage.setItem('notif_news', true);
             }
 
-            let savedTheme = localStorage.getItem('app-theme') || 'dark';
-            setTheme(savedTheme);
+            // System theme matching replaces default dark mode
+            let savedAppTheme = localStorage.getItem('scoreapp-theme') || 'system';
+            setTheme(savedAppTheme);
         });
 
-        onAuthStateChanged(auth, (user) => { 
-            isAdmin = !!user; 
+        onAuthStateChanged(auth, async (user) => { 
+            if(user) {
+                let userDoc = await getDoc(doc(db, "users", user.uid));
+                if(userDoc.exists()) {
+                    let ud = userDoc.data();
+                    userRole = ud.role;
+                    userTourneyId = ud.tournamentId || null;
+                } else {
+                    userRole = 'super_admin';
+                }
+            } else {
+                userRole = 'fan';
+                userTourneyId = null;
+            }
+            
+            isAdmin = (userRole === 'super_admin' || userRole === 'organizer'); 
+            
+            if (userRole === 'pending') {
+                isAdmin = false;
+                alert("Your organizer account is pending approval.");
+                await signOut(auth);
+                return;
+            }
+
             document.getElementById('admin-panel').style.display = isAdmin ? 'flex' : 'none'; 
+            
+            if(isAdmin) {
+                if(userRole === 'organizer') {
+                    let btnT = document.getElementById('btn-create-tourney'); if(btnT) btnT.style.display = 'none';
+                    let btnH = document.getElementById('btn-pending-hosts'); if(btnH) btnH.style.display = 'none';
+                } else {
+                    let btnT = document.getElementById('btn-create-tourney'); if(btnT) btnT.style.display = 'inline-block';
+                    let btnH = document.getElementById('btn-pending-hosts'); if(btnH) btnH.style.display = 'inline-block';
+                }
+            }
+
             if(window.currentMatch) document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none'; 
             renderTeamsTab(); 
             buildAutoBrackets(); // Re-draw so admin buttons appear
@@ -609,6 +724,61 @@
 
         window.login = () => signInWithEmailAndPassword(auth, document.getElementById('adm-email').value, document.getElementById('adm-pass').value).then(() => document.getElementById('login-modal').style.display='none').catch(e=>alert(e.message));
         window.logoutAdmin = () => signOut(auth);
+        
+        window.submitHostRequest = async () => {
+            let btn = document.getElementById('req-submit-btn');
+            btn.innerText = 'Submitting...'; btn.disabled = true;
+            try {
+                let name = document.getElementById('req-name').value;
+                let email = document.getElementById('req-email').value;
+                let pass = document.getElementById('req-pass').value;
+                let tname = document.getElementById('req-tourney').value;
+                if(!name || !email || !pass || !tname) throw new Error('Fill all fields');
+                
+                let cred = await createUserWithEmailAndPassword(auth, email, pass);
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    uid: cred.user.uid, email, name, requestedTournament: tname, role: 'pending', timestamp: new Date()
+                });
+                await signOut(auth);
+                document.getElementById('modal-request-host').style.display='none';
+                alert('Request submitted! Wait for main admin approval.');
+            } catch(e) {
+                alert(e.message);
+            }
+            btn.innerText = 'Submit Request'; btn.disabled = false;
+        }
+
+        window.openPendingHostsModal = async () => {
+            document.getElementById('modal-admin-requests').style.display = 'flex';
+            document.getElementById('pending-hosts-list').innerHTML = "<p style='color:#888;'>Loading...</p>";
+            let html = '';
+            let q = query(collection(db, "users"), where("role", "==", "pending"));
+            let snap = await getDocs(q);
+            snap.forEach(d => {
+                let u = d.data();
+                html += `<div style="background:var(--bg-surface-2); padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;">
+                    <div style="font-weight:bold;">${u.name}</div>
+                    <div style="font-size:12px; color:#888;">${u.email}</div>
+                    <div style="font-size:13px; margin:5px 0;">Wants to host: <strong style="color:var(--primary);">${u.requestedTournament}</strong></div>
+                    <button onclick="approveHost('${d.id}', '${u.requestedTournament}')" style="padding:8px; font-size:12px;">Approve & Create Tournament</button>
+                    <button onclick="rejectHost('${d.id}')" class="del-btn" style="padding:8px; font-size:12px; margin-top:5px;">Reject</button>
+                </div>`;
+            });
+            document.getElementById('pending-hosts-list').innerHTML = html || "<p style='color:#888;'>No pending requests.</p>";
+        }
+
+        window.approveHost = async (uid, tname) => {
+            let tRef = await addDoc(collection(db, "tournaments"), { 
+                name: tname, type: 'Group Stage', bracketSize: 0, playersPerTeam: 9, createdAt: new Date() 
+            });
+            await updateDoc(doc(db, "users", uid), { role: 'organizer', tournamentId: tRef.id });
+            alert("Organizer approved and tournament created!");
+            window.openPendingHostsModal(); 
+        }
+        window.rejectHost = async (uid) => {
+            await deleteDoc(doc(db, "users", uid));
+            window.openPendingHostsModal();
+        }
         
         const getBase64 = (file) => new Promise((resolve) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => resolve(r.result); });
         const compressImg = (file, maxW) => new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); let w = img.width; let h = img.height; if(w > maxW) { h *= maxW/w; w = maxW; } canvas.width = w; canvas.height = h; ctx.drawImage(img, 0, 0, w, h); res(canvas.toDataURL('image/jpeg', 0.8)); } } });
@@ -641,7 +811,11 @@
         }
 
         window.openTeamModal = (teamId = null) => { 
-            const sel = document.getElementById('team-t-id'); sel.innerHTML = ''; allTournaments.forEach(t => sel.add(new Option(t.name, t.id))); 
+            const sel = document.getElementById('team-t-id'); sel.innerHTML = ''; 
+            allTournaments.forEach(t => {
+                if(userRole === 'organizer' && t.id !== userTourneyId) return;
+                sel.add(new Option(t.name, t.id));
+            }); 
             document.getElementById('roster-builder').innerHTML = '';
             if(teamId) {
                 editingTeamId = teamId; let t = allTeams.find(x => x.id === teamId);
@@ -680,7 +854,14 @@
         window.deleteTeam = async () => { if(confirm("Permanently delete this team?")) { await deleteDoc(doc(db, "teams", editingTeamId)); closeTeamModal(); } }
 
         // Matches
-        window.openMatchModal = () => { const sel = document.getElementById('m-tourney'); sel.innerHTML = '<option>Select Tournament...</option>'; allTournaments.forEach(t => sel.add(new Option(t.name, t.id))); document.getElementById('modal-match').style.display='flex'; }
+        window.openMatchModal = () => { 
+            const sel = document.getElementById('m-tourney'); sel.innerHTML = '<option>Select Tournament...</option>'; 
+            allTournaments.forEach(t => {
+                if(userRole === 'organizer' && t.id !== userTourneyId) return;
+                sel.add(new Option(t.name, t.id));
+            }); 
+            document.getElementById('modal-match').style.display='flex'; 
+        }
         window.loadTeamsForMatch = (tId, selA_id, selB_id) => { const sA = document.getElementById(selA_id); const sB = document.getElementById(selB_id); sA.innerHTML = ''; sB.innerHTML = ''; allTeams.filter(t => t.tournamentId === tId).forEach(t => { sA.add(new Option(t.name, t.id)); sB.add(new Option(t.name, t.id)); }); }
         
         window.openBracketMatchModal = (tId, nodeId) => {
@@ -713,6 +894,11 @@
                 if (!isOfficial) {
                     let timeVal = document.getElementById('m-time').value;
                     let autoWeather = await getAutoWeather();
+                    if (autoWeather.includes('🌧️') || autoWeather.includes('⛈️') || autoWeather.includes('❄️')) {
+                        if(!confirm(`Bad weather forecast (${autoWeather}). Do you still want to schedule this friendly?`)) {
+                            return; // Cancel schedule
+                        }
+                    }
                     timeStr = timeVal ? autoWeather + ' ' + timeVal : 'TBD';
                     matchDate = document.getElementById('m-date').value || '';
                 }
@@ -750,7 +936,7 @@
             const file = document.getElementById('n-image').files[0]; let imgBase64 = file ? await compressImg(file, 600) : null;
             const vidFile = document.getElementById('n-video').files[0]; let vidBase64 = null;
             if(vidFile) { if(vidFile.size > 900000) return alert('Video too large! Please use a clip under ~900KB or compress it.'); vidBase64 = await getBase64(vidFile); }
-            await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, video: vidBase64, date: new Date().toLocaleDateString(), dateISO: new Date().toISOString().split('T')[0] }); 
+            await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, video: vidBase64, date: new Date().toLocaleDateString(), dateISO: new Date().toISOString().split('T')[0], likes: 0, dislikes: 0, commentCount: 0 }); 
             document.getElementById('modal-news').style.display='none'; 
         }
         window.deleteNews = async (id) => { if(confirm("Delete this post?")) { await deleteDoc(doc(db, "announcements", id)); } }
