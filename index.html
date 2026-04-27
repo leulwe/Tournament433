@@ -25,7 +25,7 @@
         </div>
     </div>
 
-    <!-- Old top tabs (hidden by CSS, kept for JS compatibility) -->
+    <!-- Top Navigation -->
     <div class="nav-tabs" id="main-nav">
         <div class="tab active" onclick="switchMainTab('home', this)">Home</div>
         <div class="tab" onclick="switchMainTab('matches', this)">Matches</div>
@@ -74,7 +74,7 @@
     <!-- Match Center Deep View -->
     <div id="match-center">
         <div class="mc-header">
-            <button class="mc-back" onclick="closeMatchCenter()">← Back</button>
+            <button class="mc-back btn-icon" onclick="closeMatchCenter()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M15 18l-6-6 6-6"></path></svg><span>Back</span></button>
             <div style="font-size:12px; color:#aaa; text-transform:uppercase; letter-spacing:2px;" id="mc-tourney-name">Tournament</div>
             <div class="mc-score-row">
                 <div class="mc-team" onclick="if(window.currentMatch) viewTeamProfile(window.currentMatch.teamA.id)"><img id="mc-logo-a" class="mc-big-logo"><span id="mc-name-a">TEAM A</span></div>
@@ -85,12 +85,18 @@
                 <div class="mc-team" onclick="if(window.currentMatch) viewTeamProfile(window.currentMatch.teamB.id)"><img id="mc-logo-b" class="mc-big-logo"><span id="mc-name-b">TEAM B</span></div>
             </div>
             <div class="mc-time" id="mc-clock">Pending</div>
+            <div class="mc-follow-row">
+                <button id="mc-notify-toggle" class="mc-follow-btn" onclick="toggleMatchSubscription()">
+                    <span class="inline-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.7V4a2 2 0 1 0-4 0v1.3A6 6 0 0 0 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg></span>
+                    <span id="mc-notify-label">Follow Match Alerts</span>
+                </button>
+            </div>
             
             <div id="mc-admin-buttons" style="display:none; margin-top:20px; gap:10px; justify-content:center; flex-wrap:wrap;">
-                <button style="background:var(--accent); color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="openScheduleModal()">📅 Schedule Match</button>
-                <button style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="launchBroadcast()">🔴 Broadcast Match</button>
-                <button id="mc-export-fixture" style="background:#3498db; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer; display:none;" onclick="exportFixtureImage()">📥 Save Fixture Graphic</button>
-                <button style="background:#c0392b; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="deleteCurrentMatch()">🗑️ Delete</button>
+                <button class="btn-icon" style="background:var(--accent); color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="openScheduleModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span>Schedule Match</span></button>
+                <button class="btn-icon" style="background:#e74c3c; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="launchBroadcast()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.48"></path><path d="M7.76 16.24a6 6 0 0 1 0-8.48"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M4.93 19.07a10 10 0 0 1 0-14.14"></path></svg><span>Broadcast Match</span></button>
+                <button id="mc-export-fixture" class="btn-icon" style="background:#3498db; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer; display:none;" onclick="exportFixtureImage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Save Fixture Graphic</span></button>
+                <button class="btn-icon" style="background:#c0392b; color:#fff; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;" onclick="deleteCurrentMatch()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg><span>Delete</span></button>
             </div>
         </div>
         
@@ -106,7 +112,6 @@
                 <div id="mc-motm-banner" style="display:none; text-align:center; background:var(--gold); color:#000; padding:15px; border-radius:8px; font-weight:bold; font-size:18px; margin-bottom:20px;"></div>
                 <div style="display:flex; gap:20px; flex-direction:column;">
                     <div><h4 style="border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:5px;">Match Timeline</h4>
-                        <p style="font-size:11px; color:#888; margin-top:0;">Goals ⚽ | Assists 🤝 | Subs 🔄 | Yellow 🟨 | Red 🟥</p>
                         <div id="mc-events-list"></div>
                     </div>
                     <div><h4 style="border-bottom:1px solid #333; padding-bottom:5px;">Live Commentary</h4><div id="mc-commentary-list"><p style="color:#666; font-style:italic;">No updates yet.</p></div></div>
@@ -114,8 +119,7 @@
             </div>
             <div id="mc-tab-stats" class="view-section"><div id="mc-stats-container"></div></div>
             <div id="mc-tab-lineups" class="view-section">
-                <p style="text-align:center; color:var(--primary); font-size:13px; margin-top:0;">Tap a player to view profile & rate performance!</p>
-                <button onclick="downloadLineupImage()" style="width:100%; background:#3498db; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:15px;">📥 Download Pitch PNG</button>
+                <button class="btn-icon" onclick="downloadLineupImage()" style="width:100%; background:#3498db; color:#fff; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer; margin-bottom:15px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg><span>Download Pitch PNG</span></button>
                 <div id="lineups-export-area">
                     <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;">
                         <button onclick="toggleLineups('A')" id="btn-show-a" style="flex:1; background:var(--primary); color:#000; border:none; padding:10px; font-weight:bold; border-radius:5px;">Team A</button>
@@ -143,7 +147,7 @@
     <!-- Tournament Center Deep View -->
     <div id="tournament-center" style="display:none; position:absolute; top:0; left:0; width:100%; min-height:100vh; background:var(--bg-dark); z-index:200;">
         <div class="mc-header" style="padding-bottom:0;">
-            <button class="mc-back" onclick="closeTournamentHub()">← Back</button>
+            <button class="mc-back btn-icon" onclick="closeTournamentHub()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M15 18l-6-6 6-6"></path></svg><span>Back</span></button>
             <div style="text-align:center; padding-top:20px; padding-bottom:10px;">
                 <img id="tc-logo" style="width:60px; height:60px; border-radius:10px; background:#fff; object-fit:contain; margin-bottom:10px; display:none;">
                 <h2 id="tc-name" style="margin:0;">Tournament Name</h2>
@@ -189,7 +193,7 @@
         </div>
     </div>
 
-    <!-- 🛡️ Full Player Profile & Rating Modal -->
+    <!-- Player Profile Modal -->
     <div id="player-profile-modal" class="modal">
         <div class="modal-content" style="width: 95%; max-width: 450px;">
             <h2 id="pp-name" style="color:var(--primary); margin-top:0; margin-bottom:5px;">Player Name</h2>
@@ -197,12 +201,12 @@
             
             <h4 style="text-align:left; border-bottom:1px solid #333; padding-bottom:5px; margin-bottom:15px;">All-Time Tournament Stats</h4>
             <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:20px; font-weight:bold; background:#111; padding:15px; border-radius:8px;">
-                <div>🔥 G/A<br><span id="pp-ga" style="color:var(--primary); font-size:20px;">0</span></div>
-                <div>⚽ Gls<br><span id="pp-goals" style="color:#fff; font-size:20px;">0</span></div>
-                <div>🤝 Ast<br><span id="pp-assists" style="color:#3498db; font-size:20px;">0</span></div>
-                <div>⭐ MOTM<br><span id="pp-motms" style="color:var(--gold); font-size:20px;">0</span></div>
-                <div>🟨 YC<br><span id="pp-yellows" style="color:#f1c40f; font-size:20px;">0</span></div>
-                <div>🟥 RC<br><span id="pp-reds" style="color:#e74c3c; font-size:20px;">0</span></div>
+                <div>G/A<br><span id="pp-ga" style="color:var(--primary); font-size:20px;">0</span></div>
+                <div>Goals<br><span id="pp-goals" style="color:#fff; font-size:20px;">0</span></div>
+                <div>Assists<br><span id="pp-assists" style="color:#3498db; font-size:20px;">0</span></div>
+                <div>MOTM<br><span id="pp-motms" style="color:var(--gold); font-size:20px;">0</span></div>
+                <div>YC<br><span id="pp-yellows" style="color:#f1c40f; font-size:20px;">0</span></div>
+                <div>RC<br><span id="pp-reds" style="color:#e74c3c; font-size:20px;">0</span></div>
             </div>
             <div style="text-align:center; font-weight:bold; background:#111; padding:10px; border-radius:8px; margin-bottom:20px;">
                 Average Match Rating: <span id="pp-avg-rating" style="color:var(--gold); font-size:24px; margin-left:10px;">-</span><span style="font-size:12px; color:#888;">/10</span>
@@ -221,14 +225,14 @@
         </div>
     </div>
 
-    <!-- 🛡️ Team Profile View -->
+    <!-- Team Profile View -->
     <div id="team-profile" style="background:var(--bg-dark); min-height:100vh; position:absolute; top:0; left:0; width:100%; z-index:300; display:none; overflow-y:auto;">
         <div style="background:#000; padding:30px 20px; text-align:center; position:relative;">
-            <button style="position:absolute; left:15px; top:15px; background:none; border:none; color:var(--primary); font-size:16px; cursor:pointer; font-weight:bold;" onclick="document.getElementById('team-profile').style.display='none'">← Back</button>
+            <button class="btn-icon" style="position:absolute; left:15px; top:15px; background:none; border:none; color:var(--primary); font-size:16px; cursor:pointer; font-weight:bold;" onclick="document.getElementById('team-profile').style.display='none'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M15 18l-6-6 6-6"></path></svg><span>Back</span></button>
             <img id="tp-logo" style="width:90px; height:90px; object-fit:contain; background:#fff; border-radius:50%; margin:0 auto; padding:2px;">
             <h1 id="tp-name" style="margin:10px 0 0 0;">Team Name</h1>
         </div>
-        <div class="content"><p style="text-align:center; color:var(--text-secondary); font-size:12px; margin-top:0;">Tap player for stats.</p><div id="tp-roster" style="background:var(--bg-surface); border-radius:12px; padding:10px;"></div></div>
+        <div class="content"><div id="tp-roster" style="background:var(--bg-surface); border-radius:12px; padding:10px;"></div></div>
     </div>
 
     <!-- Modals for CRUD -->
@@ -236,7 +240,7 @@
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal"><div class="modal-content">
-        <h2>⚙️ Settings</h2>
+        <h2>Settings</h2>
         <div style="text-align:left; margin-bottom:16px;"><label style="font-size:14px; font-weight:700; margin-bottom:12px; display:block;">Theme</label>
             <div class="theme-option selected" onclick="setTheme('dark')" id="theme-dark"><div class="theme-dot" style="background:#1a1a22;"></div><div><div class="theme-name">Dark</div><div class="theme-desc">Easy on the eyes</div></div></div>
             <div class="theme-option" onclick="setTheme('light')" id="theme-light"><div class="theme-dot" style="background:#f5f5f7;"></div><div><div class="theme-name">Light</div><div class="theme-desc">Classic bright mode</div></div></div>
@@ -245,21 +249,21 @@
         <div style="text-align:left; margin-bottom:16px;">
             <label style="font-size:14px; font-weight:700; margin-bottom:12px; display:block;">Notifications</label>
             <label style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface-2); padding:12px; border-radius:8px; margin-bottom:8px; cursor:pointer;">
-                <span>⚽ Goals</span>
+                <span>Goals & Cards</span>
                 <input type="checkbox" id="notif-goals" onchange="toggleNotif('goals', this.checked)" style="transform:scale(1.2);">
             </label>
             <label style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface-2); padding:12px; border-radius:8px; margin-bottom:8px; cursor:pointer;">
-                <span>📅 Today's Matches</span>
+                <span>Kickoff Reminders</span>
                 <input type="checkbox" id="notif-matches" onchange="toggleNotif('matches', this.checked)" style="transform:scale(1.2);">
             </label>
             <label style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-surface-2); padding:12px; border-radius:8px; margin-bottom:8px; cursor:pointer;">
-                <span>📢 News</span>
+                <span>Announcements</span>
                 <input type="checkbox" id="notif-news" onchange="toggleNotif('news', this.checked)" style="transform:scale(1.2);">
             </label>
         </div>
         <div style="text-align:left; margin-bottom:16px;">
             <label style="font-size:14px; font-weight:700; margin-bottom:12px; display:block;">Organize</label>
-            <button onclick="document.getElementById('modal-request-host').style.display='flex'; document.getElementById('settings-modal').style.display='none'" style="background:var(--bg-surface-2); color:var(--text-primary); border:1px solid var(--border); padding:10px; width:100%; border-radius:8px; cursor:pointer; text-align:left; font-weight:600;"><span style="margin-right:8px;">🏆</span> Request to Host Tournament</button>
+            <button onclick="document.getElementById('modal-request-host').style.display='flex'; document.getElementById('settings-modal').style.display='none'" style="background:var(--bg-surface-2); color:var(--text-primary); border:1px solid var(--border); padding:10px; width:100%; border-radius:8px; cursor:pointer; text-align:left; font-weight:600;">Request to Host Tournament</button>
         </div>
         <button style="background:var(--bg-surface-3); color:var(--text-primary);" onclick="document.getElementById('settings-modal').style.display='none'">Close</button>
     </div></div>
@@ -283,7 +287,7 @@
 
     <!-- Schedule Existing Match Modal -->
     <div id="modal-schedule" class="modal"><div class="modal-content">
-        <h2>📅 Schedule Match</h2>
+        <h2>Schedule Match</h2>
         <label>Match Date</label><input type="date" id="sched-date">
         <div style="display:flex; gap:10px;"><input type="text" id="sched-time" placeholder="Time (e.g. 18:00)" style="flex:1;"></div>
         <button onclick="saveSchedule()">Save Schedule</button>
@@ -357,29 +361,72 @@
     <div id="modal-news" class="modal"><div class="modal-content"><h2>Post Announcement</h2><input type="text" id="n-title" placeholder="Headline"><textarea id="n-body" rows="4" placeholder="Message content..."></textarea><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px;">Attach Image (Optional)</label><input type="file" id="n-image" accept="image/*"><label style="display:block; text-align:left; font-size:12px; margin-bottom:5px; margin-top:10px;">Attach Video / Vlog (Optional)</label><input type="file" id="n-video" accept="video/*"><button onclick="postNews()">Post News</button><button style="background:#333; color:#fff;" onclick="this.parentElement.parentElement.style.display='none'">Cancel</button></div></div>
 
     <!-- Hidden Fixture Graphic -->
-    <div style="position: absolute; left: -9999px; top: 0; width: 0; height: 0; overflow: hidden;"><div id="fixture-graphic-area" style="width: 800px; height: 800px; background: linear-gradient(135deg, #0d283c 0%, #0d283c 40%, #173b2c 100%); position: relative; font-family: 'Segoe UI', sans-serif;"><div style="background: var(--primary); color: #000; text-align: center; padding: 15px; font-size: 26px; font-weight: 900; letter-spacing: 2px;">MATCH FIXTURE</div><div style="text-align: center; margin-top: 35px; color: #fff; font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 10px;">🏆 <span id="gfx-stage">R16 M1</span></div><div style="text-align: center; margin-top: 30px; font-size: 150px; font-weight: 900; font-style: italic; color: #fff; line-height: 1; letter-spacing: 5px;">VS</div><div style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px; padding: 25px 40px; background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(255,255,255,0.15); height: 50px;"><div style="display: flex; align-items: center; gap: 18px;"><img id="gfx-logo1" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="gfx-team1" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM A</div></div><div style="display: flex; align-items: center; gap: 18px; flex-direction: row-reverse;"><img id="gfx-logo2" style="max-height: 45px; max-width: 45px; object-fit: contain; border-radius:50%; background:#fff;"><div id="gfx-team2" style="color: #fff; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase;">TEAM B</div></div></div><div style="text-align: center; margin-top: 70px; color: #fff;"><div id="gfx-time" style="font-size: 40px; font-weight: 900; margin-bottom: 20px; letter-spacing: 1px;">🕒 18:00</div></div></div></div>
+    <div style="position: absolute; left: -9999px; top: 0; width: 0; height: 0; overflow: hidden;">
+        <div id="fixture-graphic-area" style="width: 900px; height: 900px; background: radial-gradient(circle at top, #1d4ed8 0%, #081326 48%, #020617 100%); position: relative; font-family: 'Segoe UI', sans-serif; padding: 36px; box-sizing: border-box;">
+            <div style="height:100%; border-radius:32px; border:1px solid rgba(255,255,255,0.12); background:linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(2,6,23,0.92) 100%); overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,0.35);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:34px 38px 10px;">
+                    <div style="background:#00ff87; color:#031017; font-size:18px; font-weight:900; letter-spacing:2px; padding:10px 16px; border-radius:999px;">MATCH FIXTURE</div>
+                    <div id="gfx-stage" style="color:#dbeafe; font-size:20px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">R16 M1</div>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:42px 50px 24px; gap:28px;">
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; gap:18px;">
+                        <div style="width:170px; height:170px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; box-shadow:0 20px 40px rgba(0,0,0,0.22);">
+                            <img id="gfx-logo1" style="max-height:120px; max-width:120px; object-fit:contain; border-radius:50%;">
+                        </div>
+                        <div id="gfx-team1" style="color:#fff; font-size:42px; font-weight:900; line-height:1.05; text-transform:uppercase;">TEAM A</div>
+                    </div>
+                    <div style="width:240px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+                        <div style="font-size:130px; font-weight:900; line-height:1; color:#fff; letter-spacing:4px;">VS</div>
+                        <div id="gfx-time" style="margin-top:18px; color:#e2e8f0; font-size:34px; font-weight:700; background:rgba(15,23,42,0.55); border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:16px 22px; min-width:220px;">18:00</div>
+                    </div>
+                    <div style="flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; gap:18px;">
+                        <div style="width:170px; height:170px; border-radius:50%; background:rgba(255,255,255,0.95); display:flex; align-items:center; justify-content:center; box-shadow:0 20px 40px rgba(0,0,0,0.22);">
+                            <img id="gfx-logo2" style="max-height:120px; max-width:120px; object-fit:contain; border-radius:50%;">
+                        </div>
+                        <div id="gfx-team2" style="color:#fff; font-size:42px; font-weight:900; line-height:1.05; text-transform:uppercase;">TEAM B</div>
+                    </div>
+                </div>
+                <div style="padding:0 50px 44px;">
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:16px;">
+                        <div style="background:rgba(15,23,42,0.58); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:22px; color:#cbd5e1;">
+                            <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.6px; color:#7dd3fc; margin-bottom:10px;">Stage</div>
+                            <div style="font-size:24px; font-weight:700; color:#fff;">Official Fixture</div>
+                        </div>
+                        <div style="background:rgba(15,23,42,0.58); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:22px; color:#cbd5e1;">
+                            <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.6px; color:#7dd3fc; margin-bottom:10px;">Kickoff</div>
+                            <div style="font-size:24px; font-weight:700; color:#fff;">Be there on time</div>
+                        </div>
+                        <div style="background:rgba(15,23,42,0.58); border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:22px; color:#cbd5e1;">
+                            <div style="font-size:12px; text-transform:uppercase; letter-spacing:1.6px; color:#7dd3fc; margin-bottom:10px;">Broadcast</div>
+                            <div style="font-size:24px; font-weight:700; color:#fff;">ScorePo Live Center</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Interactive Side Menu -->
     <div id="side-menu-overlay" class="side-menu-overlay" onclick="closeSideMenu()"></div>
     <div id="side-menu" class="side-menu">
         <div class="side-menu-header">
             <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px; height:20px;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg> Menu</h3>
-            <button onclick="closeSideMenu()">✕</button>
+            <button onclick="closeSideMenu()">Close</button>
         </div>
         <div class="side-menu-content">
-            <button onclick="switchTab('home'); closeSideMenu()"><span class="nav-icon">🏠</span> Home</button>
-            <button onclick="switchTab('matches'); closeSideMenu()"><span class="nav-icon">📅</span> Matches</button>
-            <button onclick="switchTab('tournaments'); closeSideMenu()"><span class="nav-icon">🏆</span> Tournaments</button>
+            <button onclick="switchTab('home'); closeSideMenu()"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></span> Home</button>
+            <button onclick="switchTab('matches'); closeSideMenu()"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span> Matches</button>
+            <button onclick="switchTab('tournaments'); closeSideMenu()"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg></span> Tournaments</button>
             <hr style="border-color:var(--border); margin:10px 0;">
-            <button onclick="document.getElementById('settings-modal').style.display='flex'; closeSideMenu()"><span class="nav-icon">⚙️</span> Settings</button>
-            <button onclick="document.getElementById('login-modal').style.display='flex'; closeSideMenu()"><span class="nav-icon">🔒</span> Admin Login</button>
+            <button onclick="document.getElementById('settings-modal').style.display='flex'; closeSideMenu()"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span> Settings</button>
+            <button onclick="document.getElementById('login-modal').style.display='flex'; closeSideMenu()"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span> Admin Login</button>
         </div>
     </div>
 
     <!-- FIREBASE & LOGIC -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, getDoc, setDoc, deleteDoc, increment, getDocs, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
         const app = initializeApp({ apiKey: "AIzaSyAwQduFWIpvvC8kvfcG4b3MX_LkZegAUvk", authDomain: "assist-24272.firebaseapp.com", projectId: "assist-24272" });
@@ -388,6 +435,154 @@
         let isAdmin = false; let allTeams =[]; let allTournaments =[]; let allMatches =[]; window.currentMatch = null; let selectedStarScore = 5; let editingTeamId = null; let globalStats = {};
         let activeBracketNode = null; let activeBracketTourney = null;
         let userRole = 'fan'; let userTourneyId = null;
+        let allAnnouncements = [];
+        let activeMainTab = 'home';
+        let openingContext = 'main';
+        let pendingNotificationMatchId = new URLSearchParams(window.location.search).get('match');
+        const mainTabs = ['home', 'matches', 'tournaments'];
+        const followedMatchesStorageKey = 'scorepo-followed-matches';
+        const notifiedEventsStorageKey = 'scorepo-notified-events';
+        let reminderTimers = new Map();
+        let previousAnnouncementIds = new Set();
+        let previousMatchState = new Map();
+        let seenNotificationKeys = new Set(JSON.parse(localStorage.getItem(notifiedEventsStorageKey) || '[]'));
+        const svgIcons = {
+            ball: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><path d="M12 3l3 3-1 4h-4L9 6l3-3z"></path><path d="M6 8l4 2"></path><path d="M18 8l-4 2"></path><path d="M8 17l2-4h4l2 4"></path></svg>',
+            boot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4v7c0 2.2 1.8 4 4 4h2l4 3h4a1 1 0 0 0 1-1v-3h-2.5l-4-4H11a2 2 0 0 1-2-2V4H6z"></path><path d="M6 18h7"></path></svg>',
+            yellow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="4" width="10" height="16" rx="1.5" fill="#f1c40f" stroke="#f8e27a"></rect></svg>',
+            red: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="4" width="10" height="16" rx="1.5" fill="#ef4444" stroke="#f87171"></rect></svg>',
+            bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-4-5.7V4a2 2 0 1 0-4 0v1.3A6 6 0 0 0 6 11v3.2c0 .5-.2 1-.6 1.4L4 17h5"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg>',
+            bellOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.3 5.2A6 6 0 0 1 18 11v3.2c0 .5.2 1 .6 1.4L20 17h-5"></path><path d="M4 4l16 16"></path><path d="M6 11v3.2c0 .5-.2 1-.6 1.4L4 17h10"></path><path d="M10 21a2 2 0 0 0 4 0"></path></svg>'
+        };
+        const weatherMeta = {
+            clear: { label: 'Clear', severe: false },
+            cloudy: { label: 'Cloudy', severe: false },
+            fog: { label: 'Fog', severe: false },
+            rain: { label: 'Rain', severe: true },
+            snow: { label: 'Snow', severe: true },
+            storm: { label: 'Storm', severe: true }
+        };
+        const weatherBucket = (code = 0) => {
+            if(code >= 95) return 'storm';
+            if(code >= 71 && code <= 77) return 'snow';
+            if((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+            if(code >= 45 && code <= 48) return 'fog';
+            if(code >= 1 && code <= 3) return 'cloudy';
+            return 'clear';
+        };
+        const iconHtml = (name, className = 'inline-icon') => `<span class="${className}" aria-hidden="true">${svgIcons[name] || ''}</span>`;
+        const persistNotifiedKeys = () => localStorage.setItem(notifiedEventsStorageKey, JSON.stringify([...seenNotificationKeys]));
+        const markNotified = (key) => { seenNotificationKeys.add(key); persistNotifiedKeys(); };
+        const getFollowedMatches = () => JSON.parse(localStorage.getItem(followedMatchesStorageKey) || '[]');
+        const setFollowedMatches = (ids) => localStorage.setItem(followedMatchesStorageKey, JSON.stringify(ids));
+        const isMatchFollowed = (matchId) => getFollowedMatches().includes(matchId);
+        const canManageTournament = (tournamentId) => userRole === 'super_admin' || (userRole === 'organizer' && tournamentId === userTourneyId);
+        const canManageMatch = (match) => !!match && canManageTournament(match.tournamentId);
+        const ensureTournamentAccess = (tournamentId) => {
+            if(canManageTournament(tournamentId)) return true;
+            alert("You can only manage your own tournament.");
+            return false;
+        };
+        const ensureMatchAccess = (match) => {
+            if(canManageMatch(match)) return true;
+            alert("You can only manage matches from your own tournament.");
+            return false;
+        };
+        const normalizeLineup = (lineup) => {
+            const starters = Array.isArray(lineup?.starters) ? lineup.starters : [];
+            const subs = Array.isArray(lineup?.subs) ? lineup.subs : [];
+            return {
+                starters,
+                subs,
+                formation: lineup?.formation || '',
+                confirmed: !!lineup?.confirmed
+            };
+        };
+        const parseTimeValue = (raw = '') => {
+            let timeToken = raw.trim().split(' ').pop() || '';
+            if(!/^\d{1,2}:\d{2}$/.test(timeToken)) return null;
+            const [hours, minutes] = timeToken.split(':').map(Number);
+            if(Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+            return { hours, minutes };
+        };
+        const parseKickoffDate = (match) => {
+            if(!match?.matchDate) return null;
+            const parsedTime = parseTimeValue(match.timeInfo || '');
+            if(!parsedTime) return null;
+            return new Date(`${match.matchDate}T${String(parsedTime.hours).padStart(2, '0')}:${String(parsedTime.minutes).padStart(2, '0')}:00`);
+        };
+        async function ensureNotificationPermission(actionText = 'enable notifications') {
+            if(!('Notification' in window)) {
+                alert("This browser does not support notifications.");
+                return false;
+            }
+            if(Notification.permission === 'granted') return true;
+            if(Notification.permission === 'denied') {
+                alert("Notifications are blocked for this site in your browser.");
+                return false;
+            }
+            const result = await Notification.requestPermission();
+            if(result !== 'granted') {
+                alert(`Notification permission was not granted, so ScorePo cannot ${actionText}.`);
+                return false;
+            }
+            return true;
+        }
+        function showBrowserNotification(title, body, tag, path = window.location.href) {
+            if(!('Notification' in window) || Notification.permission !== 'granted') return;
+            const payload = { body, tag, icon: 'logo.png', badge: 'logo.png', data: { path } };
+            if('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready
+                    .then((registration) => registration.showNotification(title, payload))
+                    .catch(() => new Notification(title, payload));
+                return;
+            }
+            new Notification(title, payload);
+        }
+        function updateMatchFollowButton() {
+            const button = document.getElementById('mc-notify-toggle');
+            const label = document.getElementById('mc-notify-label');
+            if(!button || !label || !window.currentMatch) return;
+            const following = isMatchFollowed(window.currentMatch.id);
+            button.classList.toggle('active', following);
+            label.innerText = following ? 'Alerts Enabled' : 'Follow Match Alerts';
+            button.querySelector('.inline-icon').innerHTML = following ? svgIcons.bell : svgIcons.bellOff;
+        }
+        function scheduleMatchReminders() {
+            reminderTimers.forEach((timerId) => clearTimeout(timerId));
+            reminderTimers = new Map();
+            if(localStorage.getItem('notif_matches') === 'false') return;
+            allMatches.forEach((match) => {
+                if(!isMatchFollowed(match.id) || match.status !== 'Pending') return;
+                const kickoffDate = parseKickoffDate(match);
+                if(!kickoffDate) return;
+                const reminderAt = new Date(kickoffDate.getTime() - (15 * 60 * 1000));
+                const reminderKey = `reminder:${match.id}:${kickoffDate.toISOString()}`;
+                if(seenNotificationKeys.has(reminderKey)) return;
+                const delay = reminderAt.getTime() - Date.now();
+                const notifyReminder = () => {
+                    if(localStorage.getItem('notif_matches') === 'false') return;
+                    showBrowserNotification(`${match.teamA?.name} vs ${match.teamB?.name}`, `Kickoff in 15 minutes. ${match.timeInfo || ''}`.trim(), `reminder-${match.id}`, `${window.location.origin}${window.location.pathname}?match=${match.id}`);
+                    markNotified(reminderKey);
+                };
+                if(delay <= 0) {
+                    if(kickoffDate.getTime() > Date.now() && kickoffDate.getTime() - Date.now() <= 15 * 60 * 1000) notifyReminder();
+                    return;
+                }
+                reminderTimers.set(match.id, window.setTimeout(() => {
+                    notifyReminder();
+                    reminderTimers.delete(match.id);
+                }, delay));
+            });
+        }
+        async function requestAdminPassword(actionText) {
+            if(!auth.currentUser?.email) throw new Error("Admin session expired.");
+            const password = window.prompt(`Confirm your admin password to ${actionText}.`);
+            if(password === null) throw new Error("Action cancelled.");
+            if(!password.trim()) throw new Error("Password is required.");
+            const credential = EmailAuthProvider.credential(auth.currentUser.email, password.trim());
+            await reauthenticateWithCredential(auth.currentUser, credential);
+        }
 
         // --- NEW THEME & NAV SYSTEM ---
         window.setTheme = (theme) => {
@@ -411,7 +606,6 @@
             }
         });
 
-        // --- NEW THEME & NAV SYSTEM ---
         window.openSideMenu = () => {
             document.getElementById('side-menu-overlay').classList.add('show');
             document.getElementById('side-menu').classList.add('open');
@@ -420,84 +614,145 @@
             document.getElementById('side-menu-overlay').classList.remove('show');
             document.getElementById('side-menu').classList.remove('open');
         };
-        
-        let touchstartX = 0;
-        let touchendX = 0;
-        document.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; });
-        document.addEventListener('touchend', e => {
-            touchendX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
-        function handleSwipe() {
-            let threshold = 50; 
-            if (touchstartX - touchendX > threshold) {
-                // Swiped left
-                window.openSideMenu();
-            }
-            if (touchendX - touchstartX > threshold) {
-                // Swiped right
-                window.closeSideMenu();
-            }
-        }
-
-        window.switchTab = (id) => {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.nav-item[onclick="switchTab('${id}')"]`).classList.add('active');
-            
-            document.querySelectorAll('#main-content .view-section').forEach(d => {
-                d.classList.remove('active');
-                if(d.id === `tab-${id}`) {
-                    // Small delay to allow display:block to apply before animation
-                    setTimeout(() => d.classList.add('active'), 10);
+        window.toggleNotif = async (type, state) => {
+            if(state) {
+                const allowed = await ensureNotificationPermission('send notifications');
+                if(!allowed) {
+                    const toggle = document.getElementById(`notif-${type}`);
+                    if(toggle) toggle.checked = false;
+                    localStorage.setItem(`notif_${type}`, false);
+                    return;
                 }
-            });
-            window.scrollTo(0, 0);
-        }
-
-        window.openScheduleModal = () => {
+            }
+            localStorage.setItem(`notif_${type}`, state);
+            if(type === 'matches') scheduleMatchReminders();
+        };
+        window.toggleMatchSubscription = async () => {
             if(!window.currentMatch) return;
+            const currentlyFollowing = isMatchFollowed(window.currentMatch.id);
+            if(!currentlyFollowing) {
+                const allowed = await ensureNotificationPermission('follow this match');
+                if(!allowed) return;
+            }
+            let followed = getFollowedMatches();
+            if(currentlyFollowing) followed = followed.filter((id) => id !== window.currentMatch.id);
+            else followed = [...new Set([...followed, window.currentMatch.id])];
+            setFollowedMatches(followed);
+            updateMatchFollowButton();
+            scheduleMatchReminders();
+        };
+        window.toggleMatchSubscriptionFromCard = async (matchId) => {
+            const match = allMatches.find((item) => item.id === matchId);
+            if(!match) return;
+            const currentlyFollowing = isMatchFollowed(matchId);
+            if(!currentlyFollowing) {
+                const allowed = await ensureNotificationPermission('follow this match');
+                if(!allowed) return;
+            }
+            let followed = getFollowedMatches();
+            if(currentlyFollowing) followed = followed.filter((id) => id !== matchId);
+            else followed = [...new Set([...followed, matchId])];
+            setFollowedMatches(followed);
+            if(window.currentMatch?.id === matchId) updateMatchFollowButton();
+            scheduleMatchReminders();
+            renderMatchLists();
+        };
+        const wireImplicitSubmit = (containerId, action, options = {}) => {
+            const root = document.getElementById(containerId);
+            if(!root) return;
+            root.addEventListener('keydown', (event) => {
+                if(event.key !== 'Enter') return;
+                const target = event.target;
+                if(target.tagName === 'TEXTAREA' && !options.allowTextareaShortcut) return;
+                if(target.tagName === 'TEXTAREA' && options.allowTextareaShortcut && !(event.ctrlKey || event.metaKey)) return;
+                if(target.type === 'file' || target.type === 'checkbox') return;
+                event.preventDefault();
+                action();
+            });
+        };
+        document.addEventListener('DOMContentLoaded', () => {
+            const notifGoals = localStorage.getItem('notif_goals') !== 'false';
+            const notifMatches = localStorage.getItem('notif_matches') !== 'false';
+            const notifNews = localStorage.getItem('notif_news') !== 'false';
+            let gBox = document.getElementById('notif-goals'); if(gBox) gBox.checked = notifGoals;
+            let mBox = document.getElementById('notif-matches'); if(mBox) mBox.checked = notifMatches;
+            let nBox = document.getElementById('notif-news'); if(nBox) nBox.checked = notifNews;
+            if(localStorage.getItem('notif_goals') === null) {
+                localStorage.setItem('notif_goals', true);
+                localStorage.setItem('notif_matches', true);
+                localStorage.setItem('notif_news', true);
+            }
+            let savedAppTheme = localStorage.getItem('scoreapp-theme') || 'system';
+            setTheme(savedAppTheme);
+            if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+            if('serviceWorker' in navigator) {
+                navigator.serviceWorker.addEventListener('message', (event) => {
+                    const targetPath = event.data?.path;
+                    if(!targetPath) return;
+                    const url = new URL(targetPath, window.location.origin);
+                    pendingNotificationMatchId = url.searchParams.get('match');
+                    if(pendingNotificationMatchId) maybeOpenRequestedMatch();
+                });
+            }
+            wireImplicitSubmit('login-modal', () => login());
+            wireImplicitSubmit('modal-request-host', () => submitHostRequest());
+            wireImplicitSubmit('modal-schedule', () => saveSchedule());
+            wireImplicitSubmit('modal-tourney', () => createTournament());
+            wireImplicitSubmit('modal-match', () => createMatch(false));
+            wireImplicitSubmit('modal-bracket-match', () => createBracketMatch());
+            wireImplicitSubmit('modal-news', () => postNews(), { allowTextareaShortcut: true });
+            wireImplicitSubmit('modal-comments', () => postNewsComment());
+            const chatMsg = document.getElementById('chat-msg');
+            if(chatMsg) chatMsg.addEventListener('keydown', (event) => {
+                if(event.key === 'Enter') { event.preventDefault(); sendSuperchat(); }
+            });
+        });
+        let mainTouchStart = null;
+        document.getElementById('main-content').addEventListener('touchstart', (event) => {
+            const touch = event.changedTouches[0];
+            mainTouchStart = { x: touch.screenX, y: touch.screenY };
+        }, { passive: true });
+        document.getElementById('main-content').addEventListener('touchend', (event) => {
+            if(document.getElementById('tournament-center').style.display === 'block' || document.getElementById('match-center').style.display === 'block' || !mainTouchStart) return;
+            const touch = event.changedTouches[0];
+            const deltaX = touch.screenX - mainTouchStart.x;
+            const deltaY = touch.screenY - mainTouchStart.y;
+            if(Math.abs(deltaX) < 60 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+            const currentIndex = mainTabs.indexOf(activeMainTab);
+            const nextIndex = deltaX < 0 ? Math.min(mainTabs.length - 1, currentIndex + 1) : Math.max(0, currentIndex - 1);
+            if(nextIndex !== currentIndex) switchMainTab(mainTabs[nextIndex]);
+            mainTouchStart = null;
+        }, { passive: true });
+        window.openScheduleModal = () => {
+            if(!window.currentMatch || !ensureMatchAccess(window.currentMatch)) return;
             document.getElementById('modal-schedule').style.display='flex';
-        }
-
+        };
         async function getAutoWeather() {
             try {
                 let res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=9.02497&longitude=38.74689&current_weather=true');
                 let data = await res.json();
-                let isDay = data.current_weather.is_day === 1;
-                let wCode = data.current_weather.weathercode;
-                let icon = isDay ? '☀️' : '🌙';
-                if(wCode >= 1 && wCode <= 3) icon = isDay ? '⛅' : '☁️';
-                if(wCode >= 45 && wCode <= 48) icon = '🌫️';
-                if(wCode >= 51 && wCode <= 67) icon = '🌧️';
-                if(wCode >= 71 && wCode <= 77) icon = '❄️';
-                if(wCode >= 80 && wCode <= 82) icon = '🌧️';
-                if(wCode >= 95) icon = '⛈️';
-                return `${icon} ${data.current_weather.temperature}°C`;
+                const bucket = weatherBucket(data.current_weather.weathercode);
+                const meta = weatherMeta[bucket] || weatherMeta.clear;
+                return { summary: `${meta.label} ${data.current_weather.temperature}C`, severe: meta.severe };
             } catch(e) {
-                return '☀️'; // fallback
+                return { summary: 'Weather pending', severe: false };
             }
         }
-
         window.saveSchedule = async () => {
-            if(!window.currentMatch) return;
+            if(!window.currentMatch || !ensureMatchAccess(window.currentMatch)) return;
             let date = document.getElementById('sched-date').value;
-            let time = document.getElementById('sched-time').value;
-            
+            let time = document.getElementById('sched-time').value.trim();
             let autoWeather = await getAutoWeather();
-            if (autoWeather.includes('🌧️') || autoWeather.includes('⛈️') || autoWeather.includes('❄️')) {
-                if(!confirm(`Bad weather forecast (${autoWeather}). Do you still want to schedule this match?`)) {
-                    return; // Cancel schedule, let them change time
-                }
+            if(autoWeather.severe) {
+                if(!confirm(`Weather warning (${autoWeather.summary}). Schedule this match anyway?`)) return;
             }
-            
             document.getElementById('modal-schedule').style.display='none';
-            let timeStr = time ? autoWeather + ' ' + time : 'TBD';
-            
+            let timeStr = time ? `${autoWeather.summary} ${time}` : 'TBD';
             await updateDoc(doc(db, "matches", window.currentMatch.id), {
                 matchDate: date,
                 timeInfo: timeStr
             });
-        }
+        };
         // ------------------------------
 
         document.getElementById('t-type').addEventListener('change', (e) => {
@@ -596,7 +851,7 @@
                     });
                     let sorted = Object.values(table).sort((a,b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf);
                     
-                    html += `<h5 style="color:var(--gold); margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">Group ${g} ${isAdmin ? `<button onclick="openGroupMatchModal('${tourney.id}', '${g}')" style="background:var(--primary); color:#000; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px;">+ Schedule Match</button>` : ''}</h5>`;
+                    html += `<h5 style="color:var(--gold); margin-bottom:5px; display:flex; justify-content:space-between; align-items:center;">Group ${g} ${canManageTournament(tourney.id) ? `<button onclick="openGroupMatchModal('${tourney.id}', '${g}')" style="background:var(--primary); color:#000; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px;">Schedule Match</button>` : ''}</h5>`;
                     html += `<table class="lb-table group-table"><tr><th>#</th><th>Team</th><th>PL</th><th>W</th><th>D</th><th>L</th><th>+/-</th><th>GD</th><th>PTS</th></tr>`;
                     sorted.forEach((t,i) => {
                         let border = i < 2 ? 'border-left: 3px solid var(--primary);' : (i===2 ? 'border-left: 3px solid var(--gold);' : '');
@@ -638,10 +893,10 @@
                                 <div style="font-size:10px; color:var(--text-secondary); text-align:center; margin-top:4px;">${match.status==='FINISHED'?'FT'+pen:(match.status==='Pending'?s:match.clock)}</div>
                             </div>`;
                         } else {
-                            html += `<div class="bracket-node" style="border-style:dashed;" ${isAdmin ? `onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')"` : ''}>
+                            html += `<div class="bracket-node" style="border-style:dashed;" ${canManageTournament(tourney.id) ? `onclick="openBracketMatchModal('${tourney.id}', '${nodeId}')"` : ''}>
                                 <div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>
                                 <div class="b-team"><span class="b-tbd">TBD</span><span class="b-score">-</span></div>
-                                ${isAdmin ? `<div style="font-size:10px; color:var(--accent); text-align:center; margin-top:4px;">+ Set Matchup</div>` : ''}
+                                ${canManageTournament(tourney.id) ? `<div style="font-size:10px; color:var(--accent); text-align:center; margin-top:4px;">Set Matchup</div>` : ''}
                             </div>`;
                         }
                     }
@@ -653,34 +908,6 @@
             document.getElementById('tc-brackets-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No matches scheduled.</p>";
         }
 
-        // Notifications State
-        window.toggleNotif = (type, state) => {
-            localStorage.setItem('notif_'+type, state);
-        };
-
-        // Set theme removed from here to consolidate
-
-        // Initialize Settings
-        document.addEventListener('DOMContentLoaded', () => {
-            const notifGoals = localStorage.getItem('notif_goals') !== 'false';
-            const notifMatches = localStorage.getItem('notif_matches') !== 'false';
-            const notifNews = localStorage.getItem('notif_news') !== 'false';
-            
-            let gBox = document.getElementById('notif-goals'); if(gBox) gBox.checked = notifGoals;
-            let mBox = document.getElementById('notif-matches'); if(mBox) mBox.checked = notifMatches;
-            let nBox = document.getElementById('notif-news'); if(nBox) nBox.checked = notifNews;
-            
-            if(localStorage.getItem('notif_goals') === null) {
-                localStorage.setItem('notif_goals', true);
-                localStorage.setItem('notif_matches', true);
-                localStorage.setItem('notif_news', true);
-            }
-
-            // System theme matching replaces default dark mode
-            let savedAppTheme = localStorage.getItem('scoreapp-theme') || 'system';
-            setTheme(savedAppTheme);
-        });
-
         onAuthStateChanged(auth, async (user) => { 
             if(user) {
                 let userDoc = await getDoc(doc(db, "users", user.uid));
@@ -689,7 +916,9 @@
                     userRole = ud.role;
                     userTourneyId = ud.tournamentId || null;
                 } else {
-                    userRole = 'super_admin';
+                    userRole = 'fan';
+                    userTourneyId = null;
+                    alert("This account has no role profile. Add a users/" + user.uid + " document with role super_admin or organizer to grant admin access.");
                 }
             } else {
                 userRole = 'fan';
@@ -717,7 +946,11 @@
                 }
             }
 
-            if(window.currentMatch) document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none'; 
+            if(window.currentMatch) {
+                document.getElementById('mc-admin-buttons').style.display = canManageMatch(window.currentMatch) ? 'flex' : 'none';
+                updateMatchFollowButton();
+            }
+            renderAnnouncements();
             renderTeamsTab(); 
             buildAutoBrackets(); // Re-draw so admin buttons appear
         });
@@ -728,6 +961,7 @@
         window.submitHostRequest = async () => {
             let btn = document.getElementById('req-submit-btn');
             btn.innerText = 'Submitting...'; btn.disabled = true;
+            let cred = null;
             try {
                 let name = document.getElementById('req-name').value;
                 let email = document.getElementById('req-email').value;
@@ -735,7 +969,7 @@
                 let tname = document.getElementById('req-tourney').value;
                 if(!name || !email || !pass || !tname) throw new Error('Fill all fields');
                 
-                let cred = await createUserWithEmailAndPassword(auth, email, pass);
+                cred = await createUserWithEmailAndPassword(auth, email, pass);
                 await setDoc(doc(db, "users", cred.user.uid), {
                     uid: cred.user.uid, email, name, requestedTournament: tname, role: 'pending', timestamp: new Date()
                 });
@@ -743,12 +977,16 @@
                 document.getElementById('modal-request-host').style.display='none';
                 alert('Request submitted! Wait for main admin approval.');
             } catch(e) {
+                if(cred?.user) {
+                    try { await cred.user.delete(); } catch(_) {}
+                }
                 alert(e.message);
             }
             btn.innerText = 'Submit Request'; btn.disabled = false;
         }
 
         window.openPendingHostsModal = async () => {
+            if(userRole !== 'super_admin') return alert("Only the main admin can review organizer requests.");
             document.getElementById('modal-admin-requests').style.display = 'flex';
             document.getElementById('pending-hosts-list').innerHTML = "<p style='color:#888;'>Loading...</p>";
             let html = '';
@@ -768,14 +1006,29 @@
         }
 
         window.approveHost = async (uid, tname) => {
-            let tRef = await addDoc(collection(db, "tournaments"), { 
-                name: tname, type: 'Group Stage', bracketSize: 0, playersPerTeam: 9, createdAt: new Date() 
-            });
-            await updateDoc(doc(db, "users", uid), { role: 'organizer', tournamentId: tRef.id });
-            alert("Organizer approved and tournament created!");
-            window.openPendingHostsModal(); 
+            if(userRole !== 'super_admin') return alert("Only the main admin can approve organizer requests.");
+            let tRef = null;
+            try {
+                await requestAdminPassword(`approve ${tname}`);
+                const userRef = doc(db, "users", uid);
+                const pendingSnap = await getDoc(userRef);
+                if(!pendingSnap.exists()) throw new Error("This request no longer exists.");
+                if(pendingSnap.data().role !== 'pending') throw new Error("This account is no longer pending approval.");
+                tRef = await addDoc(collection(db, "tournaments"), { 
+                    name: tname, type: 'Group Stage', bracketSize: 0, playersPerTeam: 9, createdAt: new Date() 
+                });
+                await updateDoc(userRef, { role: 'organizer', tournamentId: tRef.id, approvedAt: new Date() });
+                alert("Organizer approved and tournament created.");
+                window.openPendingHostsModal();
+            } catch(e) {
+                if(tRef) {
+                    try { await deleteDoc(doc(db, "tournaments", tRef.id)); } catch(_) {}
+                }
+                alert(e.message || "Approval failed.");
+            }
         }
         window.rejectHost = async (uid) => {
+            if(userRole !== 'super_admin') return alert("Only the main admin can reject organizer requests.");
             await deleteDoc(doc(db, "users", uid));
             window.openPendingHostsModal();
         }
@@ -785,6 +1038,7 @@
         
         // Tourney
         window.createTournament = async () => { 
+            if(userRole !== 'super_admin') return alert("Only the main admin can create tournaments directly.");
             let size = document.getElementById('t-type').value === 'Knockout' ? parseInt(document.getElementById('t-size').value) : 0;
             const logoFile = document.getElementById('t-logo').files[0]; let tLogo = logoFile ? await compressImg(logoFile, 200) : null;
             let format = parseInt(document.getElementById('t-format').value) || 9;
@@ -795,6 +1049,7 @@
         }
         window.deleteTournament = async () => {
             let tId = document.getElementById('t-del-sel').value; if(!tId || tId==='Select to Delete...') return;
+            if(!ensureTournamentAccess(tId)) return;
             if(confirm("Delete this tournament and ALL its teams and matches?")) {
                 await deleteDoc(doc(db, "tournaments", tId));
                 document.getElementById('modal-tourney').style.display='none';
@@ -819,6 +1074,7 @@
             document.getElementById('roster-builder').innerHTML = '';
             if(teamId) {
                 editingTeamId = teamId; let t = allTeams.find(x => x.id === teamId);
+                if(!t || !ensureTournamentAccess(t.tournamentId)) return;
                 document.getElementById('team-modal-title').innerText = "Edit Squad"; document.getElementById('team-name').value = t.name; document.getElementById('team-t-id').value = t.tournamentId;
                 let tourney = allTournaments.find(x => x.id === t.tournamentId); document.getElementById('team-group-container').style.display = tourney && tourney.type.includes('Group') ? 'block' : 'none'; if(t.group) document.getElementById('team-group').value = t.group;
                 t.roster.forEach(p => window.addRosterRow(p.name, p.pos, p.isCap, p.image)); document.getElementById('team-save-btn').innerText = "Update Team"; document.getElementById('team-del-btn').style.display = 'block';
@@ -833,28 +1089,39 @@
         window.closeTeamModal = () => { document.getElementById('modal-team').style.display='none'; editingTeamId = null; }
 
         window.saveTeam = async () => {
-            document.getElementById('team-save-btn').innerText = "Saving...";
+            const saveBtn = document.getElementById('team-save-btn');
+            saveBtn.innerText = "Saving...";
             const file = document.getElementById('team-logo').files[0]; let logoBase64 = file ? await compressImg(file, 200) : null;
-            
-            let promises = Array.from(document.querySelectorAll('.roster-row')).map(async row => {
-                let n = row.querySelector('.r-name').value.trim(); let p = row.querySelector('.r-pos').value; let c = row.querySelector('.r-cap').checked;
-                let fInput = row.querySelector('.r-img-input'); let imgData = row.dataset.img || null;
-                if(fInput.files.length > 0) imgData = await compressImg(fInput.files[0], 100);
-                if(n) return { name: n, pos: p, isCap: c, image: imgData }; return null;
-            });
-            let roster = (await Promise.all(promises)).filter(p => p !== null);
-            let data = { tournamentId: document.getElementById('team-t-id').value, group: document.getElementById('team-group').value, name: document.getElementById('team-name').value, roster: roster };
-            if(logoBase64) data.logo = logoBase64;
+            try {
+                const tournamentId = document.getElementById('team-t-id').value;
+                if(!ensureTournamentAccess(tournamentId)) return;
+                let promises = Array.from(document.querySelectorAll('.roster-row')).map(async row => {
+                    let n = row.querySelector('.r-name').value.trim(); let p = row.querySelector('.r-pos').value; let c = row.querySelector('.r-cap').checked;
+                    let fInput = row.querySelector('.r-img-input'); let imgData = row.dataset.img || null;
+                    if(fInput.files.length > 0) imgData = await compressImg(fInput.files[0], 100);
+                    if(n) return { name: n, pos: p, isCap: c, image: imgData }; return null;
+                });
+                let roster = (await Promise.all(promises)).filter(p => p !== null);
+                let data = { tournamentId: tournamentId, group: document.getElementById('team-group').value, name: document.getElementById('team-name').value, roster: roster };
+                if(logoBase64) data.logo = logoBase64;
 
-            if(editingTeamId) { await updateDoc(doc(db, "teams", editingTeamId), data); alert("Squad Updated!"); } 
-            else { if(!logoBase64) return alert("Please attach a logo for new teams."); await addDoc(collection(db, "teams"), data); alert("Squad Registered!"); }
-            document.getElementById('team-save-btn').innerText = "Register Team";
-            closeTeamModal();
+                if(editingTeamId) { await updateDoc(doc(db, "teams", editingTeamId), data); alert("Squad Updated!"); } 
+                else { if(!logoBase64) return alert("Please attach a logo for new teams."); await addDoc(collection(db, "teams"), data); alert("Squad Registered!"); }
+                closeTeamModal();
+            } finally {
+                saveBtn.innerText = editingTeamId ? "Update Team" : "Register Team";
+            }
         }
-        window.deleteTeam = async () => { if(confirm("Permanently delete this team?")) { await deleteDoc(doc(db, "teams", editingTeamId)); closeTeamModal(); } }
+        window.deleteTeam = async () => {
+            if(!editingTeamId) return;
+            const team = allTeams.find((item) => item.id === editingTeamId);
+            if(!team || !ensureTournamentAccess(team.tournamentId)) return;
+            if(confirm("Permanently delete this team?")) { await deleteDoc(doc(db, "teams", editingTeamId)); closeTeamModal(); }
+        }
 
         // Matches
         window.openMatchModal = () => { 
+            if(!isAdmin) return alert("Admin access is required.");
             const sel = document.getElementById('m-tourney'); sel.innerHTML = '<option>Select Tournament...</option>'; 
             allTournaments.forEach(t => {
                 if(userRole === 'organizer' && t.id !== userTourneyId) return;
@@ -865,15 +1132,15 @@
         window.loadTeamsForMatch = (tId, selA_id, selB_id) => { const sA = document.getElementById(selA_id); const sB = document.getElementById(selB_id); sA.innerHTML = ''; sB.innerHTML = ''; allTeams.filter(t => t.tournamentId === tId).forEach(t => { sA.add(new Option(t.name, t.id)); sB.add(new Option(t.name, t.id)); }); }
         
         window.openBracketMatchModal = (tId, nodeId) => {
-            if(!isAdmin) return;
+            if(!isAdmin || !ensureTournamentAccess(tId)) return;
             activeBracketNode = nodeId; activeBracketTourney = tId;
             let t = allTournaments.find(x => x.id === tId);
-            document.getElementById('bm-title').innerText = `Set Matchup — ${t.name}`;
+            document.getElementById('bm-title').innerText = `Set Matchup - ${t.name}`;
             window.loadTeamsForMatch(tId, 'bm-teamA', 'bm-teamB');
             document.getElementById('modal-bracket-match').style.display='flex';
         }
         window.openGroupMatchModal = (tId, group) => {
-            if(!isAdmin) return; activeBracketTourney = tId; activeBracketNode = `Group-${group}`; let t = allTournaments.find(x => x.id === tId);
+            if(!isAdmin || !ensureTournamentAccess(tId)) return; activeBracketTourney = tId; activeBracketNode = `Group-${group}`; let t = allTournaments.find(x => x.id === tId);
             document.getElementById('bm-title').innerText = `Schedule ${t.name} - Grp ${group}`;
             const sA = document.getElementById('bm-teamA'); const sB = document.getElementById('bm-teamB'); sA.innerHTML = ''; sB.innerHTML = ''; 
             allTeams.filter(t => t.tournamentId === tId && t.group === group).forEach(t => { sA.add(new Option(t.name, t.id)); sB.add(new Option(t.name, t.id)); }); 
@@ -887,19 +1154,16 @@
                 if(valA === "Home Team" || valB === "Away Team" || valA === valB) return alert("Please select two different, valid teams!");
 
                 let selTourney = isOfficial ? activeBracketTourney : document.getElementById('m-tourney').value;
+                if(!ensureTournamentAccess(selTourney)) return;
                 
                 let timeStr = 'TBD';
                 let matchDate = '';
                 
                 if (!isOfficial) {
-                    let timeVal = document.getElementById('m-time').value;
+                    let timeVal = document.getElementById('m-time').value.trim();
                     let autoWeather = await getAutoWeather();
-                    if (autoWeather.includes('🌧️') || autoWeather.includes('⛈️') || autoWeather.includes('❄️')) {
-                        if(!confirm(`Bad weather forecast (${autoWeather}). Do you still want to schedule this friendly?`)) {
-                            return; // Cancel schedule
-                        }
-                    }
-                    timeStr = timeVal ? autoWeather + ' ' + timeVal : 'TBD';
+                    if (autoWeather.severe && !confirm(`Weather warning (${autoWeather.summary}). Schedule this friendly anyway?`)) return;
+                    timeStr = timeVal ? `${autoWeather.summary} ${timeVal}` : 'TBD';
                     matchDate = document.getElementById('m-date').value || '';
                 }
                 
@@ -921,7 +1185,8 @@
                     teamA: { id: tA.id, name: tA.name, logo: tA.logo || "" }, teamB: { id: tB.id, name: tB.name, logo: tB.logo || "" },
                     timeInfo: timeStr, matchDate: matchDate, status: "Pending", rawSeconds: 0, scoreA: 0, scoreB: 0, penalties: {A:0, B:0}, commentary:[], subsEvents:{A:[],B:[]},
                     stats: { A: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]}, B: {shots:0, shotsOnTarget:0, possession:50, fouls:0, corners:0, yellows:[], reds:[], scorers:[]} },
-                    lineupA: { starters: cleanRosterA.slice(0,ppt), subs: cleanRosterA.slice(ppt) }, lineupB: { starters: cleanRosterB.slice(0,ppt), subs: cleanRosterB.slice(ppt) },
+                    squadA: cleanRosterA, squadB: cleanRosterB,
+                    lineupA: { starters: [], subs: [], formation: '', confirmed: false }, lineupB: { starters: [], subs: [], formation: '', confirmed: false },
                     ratings: {}, motm: null, timestamp: new Date()
                 });
             } catch(e) {
@@ -930,16 +1195,19 @@
         }
 
         window.createBracketMatch = () => window.createMatch(true);
-        window.deleteCurrentMatch = async () => { if(confirm("Permanently delete this match?")) { await deleteDoc(doc(db, "matches", window.currentMatch.id)); window.closeMatchCenter(); } }
+        window.deleteCurrentMatch = async () => {
+            if(!window.currentMatch || !ensureMatchAccess(window.currentMatch)) return;
+            if(confirm("Permanently delete this match?")) { await deleteDoc(doc(db, "matches", window.currentMatch.id)); window.closeMatchCenter(); }
+        }
         
         window.postNews = async () => { 
             const file = document.getElementById('n-image').files[0]; let imgBase64 = file ? await compressImg(file, 600) : null;
             const vidFile = document.getElementById('n-video').files[0]; let vidBase64 = null;
             if(vidFile) { if(vidFile.size > 900000) return alert('Video too large! Please use a clip under ~900KB or compress it.'); vidBase64 = await getBase64(vidFile); }
-            await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, video: vidBase64, date: new Date().toLocaleDateString(), dateISO: new Date().toISOString().split('T')[0], likes: 0, dislikes: 0, commentCount: 0 }); 
+            await addDoc(collection(db, "announcements"), { title: document.getElementById('n-title').value, body: document.getElementById('n-body').value, image: imgBase64, video: vidBase64, date: new Date().toLocaleDateString(), dateISO: new Date().toISOString().split('T')[0], likes: 0, dislikes: 0, commentCount: 0, createdAt: new Date() }); 
             document.getElementById('modal-news').style.display='none'; 
         }
-        window.deleteNews = async (id) => { if(confirm("Delete this post?")) { await deleteDoc(doc(db, "announcements", id)); } }
+        window.deleteNews = async (id) => { if(!isAdmin) return; if(confirm("Delete this post?")) { await deleteDoc(doc(db, "announcements", id)); } }
 
         // LISTENERS
         const renderTournamentsList = () => {
@@ -950,7 +1218,7 @@
                                 <h4 style="margin:0; font-size:16px;">${t.name}</h4>
                                 <div style="font-size:12px; color:var(--primary); margin-top:4px;">${t.type} • ${t.playersPerTeam || 9}v${t.playersPerTeam || 9}</div>
                             </div>
-                            <div style="color:var(--text-secondary);">➔</div>
+                            <div style="color:var(--text-secondary);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px;"><path d="M9 18l6-6-6-6"></path></svg></div>
                          </div>`;
             });
             document.getElementById('tournaments-list-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No tournaments available.</p>";
@@ -959,7 +1227,10 @@
         onSnapshot(query(collection(db, "tournaments")), snap => {
             allTournaments = snap.docs.map(d => ({id: d.id, ...d.data()}));
             let dSel = document.getElementById('t-del-sel'); dSel.innerHTML = '<option>Select to Delete...</option>';
-            allTournaments.forEach(t => dSel.add(new Option(t.name, t.id)));
+            allTournaments.forEach(t => {
+                if(!canManageTournament(t.id)) return;
+                dSel.add(new Option(t.name, t.id));
+            });
             renderTournamentsList();
             if(activeTournamentId) {
                 let t = allTournaments.find(x => x.id === activeTournamentId);
@@ -973,7 +1244,7 @@
             let tTeams = allTeams.filter(t => t.tournamentId === tId);
             tTeams.forEach(t => {
                 html += `<div class="match-card" style="text-align:center; position:relative; padding:20px 14px;">
-                            ${isAdmin ? `<button style="position:absolute; top:8px; right:8px; background:var(--bg-surface-2); color:var(--text-secondary); border:1px solid var(--border); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:11px; font-weight:600;" onclick="openTeamModal('${t.id}')">Edit</button>` : ''}
+                            ${canManageTournament(t.tournamentId) ? `<button style="position:absolute; top:8px; right:8px; background:var(--bg-surface-2); color:var(--text-secondary); border:1px solid var(--border); border-radius:6px; padding:4px 10px; cursor:pointer; font-size:11px; font-weight:600;" onclick="openTeamModal('${t.id}')">Edit</button>` : ''}
                             <div onclick="viewTeamProfile('${t.id}')" style="cursor:pointer;">
                                 <img src="${t.logo}" style="width:48px; height:48px; border-radius:50%; background:#fff; object-fit:contain; margin-bottom:8px;">
                                 <div style="font-weight:600; font-size:14px;">${t.name}</div>
@@ -1039,28 +1310,48 @@
             } catch(e) { console.error("Comment error:", e); }
         };
 
-        onSnapshot(query(collection(db, "announcements"), orderBy("date", "desc")), snap => {
-            let html = ''; snap.forEach(d => { let n = d.data(); 
+        const sortAnnouncements = (items) => [...items].sort((a, b) => {
+            const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(`${a.dateISO || '1970-01-01'}T00:00:00`);
+            const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(`${b.dateISO || '1970-01-01'}T00:00:00`);
+            return dateB - dateA;
+        });
+        const renderAnnouncements = () => {
+            let html = '';
+            sortAnnouncements(allAnnouncements).forEach(({ id, ...n }) => {
                 let likes = n.likes || 0; let dislikes = n.dislikes || 0; let cc = n.commentCount || 0;
-                let userVote = localStorage.getItem(`voted_news_${d.id}`);
+                let userVote = localStorage.getItem(`voted_news_${id}`);
                 let likeStyle = userVote === 'likes' ? 'color:var(--primary);' : 'color:var(--text-secondary);';
                 let dislikeStyle = userVote === 'dislikes' ? 'color:var(--red);' : 'color:var(--text-secondary);';
-
                 html += `<div style="background:var(--bg-surface); padding:16px; border-left:3px solid var(--accent); margin-bottom:12px; border-radius:10px; position:relative; border:1px solid var(--border);">
-                            ${isAdmin?`<button class="news-delete-btn" onclick="deleteNews('${d.id}')" title="Delete">✕</button>`:''}
+                            ${isAdmin ? `<button class="news-delete-btn" onclick="deleteNews('${id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>` : ''}
                             <div style="font-size:11px; color:var(--accent); margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">${n.date}</div>
                             <div style="font-weight:700; font-size:16px; margin-bottom:8px;">${n.title}</div>
                             ${n.image ? `<img src="${n.image}" style="width:100%; border-radius:8px; margin-bottom:10px; max-height:400px; object-fit:contain; background:#000;">` : ''}
                             ${n.video ? `<video controls playsinline style="width:100%; border-radius:8px; margin-bottom:10px; max-height:400px; background:#000;"><source src="${n.video}">Your browser does not support video.</video>` : ''}
                             <div style="color:var(--text-secondary); font-size:13px; line-height:1.5; white-space:pre-wrap;">${n.body}</div>
-                            <div style="display:flex; gap:15px; margin-top:15px; border-top:1px solid #333; padding-top:10px;">
-                                <button onclick="voteNews('${d.id}', 'likes')" style="background:none; border:none; ${likeStyle} cursor:pointer; font-size:14px; display:flex; align-items:center; gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg> <span>${likes}</span></button>
-                                <button onclick="voteNews('${d.id}', 'dislikes')" style="background:none; border:none; ${dislikeStyle} cursor:pointer; font-size:14px; display:flex; align-items:center; gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg> <span>${dislikes}</span></button>
-                                <button onclick="openNewsComments('${d.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px; display:flex; align-items:center; gap:5px; margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> ${cc} Comments</button>
+                            <div style="display:flex; gap:15px; margin-top:15px; border-top:1px solid #333; padding-top:10px; flex-wrap:wrap;">
+                                <button onclick="voteNews('${id}', 'likes')" style="background:none; border:none; ${likeStyle} cursor:pointer; font-size:14px; display:flex; align-items:center; gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg> <span>${likes}</span></button>
+                                <button onclick="voteNews('${id}', 'dislikes')" style="background:none; border:none; ${dislikeStyle} cursor:pointer; font-size:14px; display:flex; align-items:center; gap:5px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg> <span>${dislikes}</span></button>
+                                <button onclick="openNewsComments('${id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:14px; display:flex; align-items:center; gap:5px; margin-left:auto;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> ${cc} Comments</button>
                             </div>
-                         </div>`; 
+                         </div>`;
             });
-            document.getElementById('home-container').innerHTML = html;
+            document.getElementById('home-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No announcements yet.</p>";
+        };
+        onSnapshot(query(collection(db, "announcements")), snap => {
+            const nextAnnouncements = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            if(previousAnnouncementIds.size > 0 && localStorage.getItem('notif_news') !== 'false') {
+                nextAnnouncements.forEach((item) => {
+                    if(previousAnnouncementIds.has(item.id)) return;
+                    const notifyKey = `news:${item.id}`;
+                    if(seenNotificationKeys.has(notifyKey)) return;
+                    showBrowserNotification(item.title || 'New announcement', item.body || 'A new update was posted on ScorePo.', `news-${item.id}`);
+                    markNotified(notifyKey);
+                });
+            }
+            allAnnouncements = nextAnnouncements;
+            previousAnnouncementIds = new Set(nextAnnouncements.map((item) => item.id));
+            renderAnnouncements();
         });
 
         const getDisplayMinute = (status, rawSeconds) => {
@@ -1081,7 +1372,9 @@
             let rA = m.stats?.A?.reds?.length || 0; let rB = m.stats?.B?.reds?.length || 0;
             let rAHtml = Array(rA).fill(`<div class="red-card-icon"></div>`).join(''); let rBHtml = Array(rB).fill(`<div class="red-card-icon"></div>`).join('');
             let dateLabel = m.matchDate ? `<div style="font-size:11px; color:#888; text-align:center; margin-top:4px;">${m.matchDate}</div>` : '';
+            let followButton = `<button class="match-card-subscribe ${isMatchFollowed(m.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleMatchSubscriptionFromCard('${m.id}')" title="${isMatchFollowed(m.id) ? 'Stop alerts' : 'Follow match alerts'}">${iconHtml(isMatchFollowed(m.id) ? 'bell' : 'bellOff')}</button>`;
             return `<div class="match-card" onclick="openMatchCenter('${m.id}')">
+                        ${followButton}
                         ${badge}
                         <div class="match-card-header">${m.tournamentName} • ${m.tournamentPhase}</div>
                         <div class="match-row">
@@ -1105,19 +1398,9 @@
             if(d < today) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg> Past`;
             return svgCal + ' ' + d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
         };
-
-        onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc")), snap => {
-            allMatches = snap.docs.map(d => ({id: d.id, ...d.data()})); 
-            if (activeTournamentId) {
-                recalculateTournamentStats(activeTournamentId);
-                let t = allTournaments.find(x => x.id === activeTournamentId);
-                if(t) buildTournamentBrackets(t);
-                renderTournamentMatches(activeTournamentId);
-            }
-            
-            // Sort matches by date (today first, then tomorrow, then upcoming, then past)
+        const sortMatches = (matches) => {
             const today = new Date(); today.setHours(0,0,0,0);
-            const sortedMatches = [...allMatches].sort((a,b) => {
+            return [...matches].sort((a,b) => {
                 let dA = a.matchDate ? new Date(a.matchDate+'T00:00:00') : new Date(0);
                 let dB = b.matchDate ? new Date(b.matchDate+'T00:00:00') : new Date(0);
                 let diffA = Math.abs(dA - today); let diffB = Math.abs(dB - today);
@@ -1125,68 +1408,136 @@
                 let liveB = !['Pending','FINISHED'].includes(b.status) ? 0 : 1;
                 if(liveA !== liveB) return liveA - liveB;
                 if(diffA !== diffB) return diffA - diffB;
-                
-                // If same day, sort by time (parse timeInfo)
-                let tA = a.timeInfo ? a.timeInfo.split(' ').pop() : '00:00';
-                let tB = b.timeInfo ? b.timeInfo.split(' ').pop() : '00:00';
-                let minA = tA.includes(':') ? parseInt(tA.split(':')[0])*60 + parseInt(tA.split(':')[1]) : 9999;
-                let minB = tB.includes(':') ? parseInt(tB.split(':')[0])*60 + parseInt(tB.split(':')[1]) : 9999;
+                let parsedA = parseTimeValue(a.timeInfo || '');
+                let parsedB = parseTimeValue(b.timeInfo || '');
+                let minA = parsedA ? parsedA.hours * 60 + parsedA.minutes : 9999;
+                let minB = parsedB ? parsedB.hours * 60 + parsedB.minutes : 9999;
                 return minA - minB;
             });
-
-            // Group matches by date
+        };
+        const renderMatchLists = () => {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const sortedMatches = sortMatches(allMatches);
             let groups = {};
-            sortedMatches.forEach(m => {
-                let grp = getDateGroup(m.matchDate);
+            sortedMatches.forEach((match) => {
+                let grp = getDateGroup(match.matchDate);
                 if(!groups[grp]) groups[grp] = [];
-                groups[grp].push(m);
+                groups[grp].push(match);
             });
-
-            let html = '';
-            // Show live first, then today, tomorrow, upcoming, past, no date
             const svgCal = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
             const svgPast = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>`;
-            
             const groupOrder = [svgCal+' Today', svgCal+' Tomorrow'];
             const allKeys = Object.keys(groups);
             const orderedKeys = [];
-            groupOrder.forEach(k => { if(allKeys.includes(k)) orderedKeys.push(k); });
-            allKeys.filter(k => !groupOrder.includes(k) && k !== svgPast+' Past' && k !== 'No Date Set').sort().forEach(k => orderedKeys.push(k));
+            groupOrder.forEach((key) => { if(allKeys.includes(key)) orderedKeys.push(key); });
+            allKeys.filter((key) => !groupOrder.includes(key) && key !== svgPast+' Past' && key !== 'No Date Set').sort().forEach((key) => orderedKeys.push(key));
             if(allKeys.includes('No Date Set')) orderedKeys.push('No Date Set');
             if(allKeys.includes(svgPast+' Past')) orderedKeys.push(svgPast+' Past');
-
-            orderedKeys.forEach(grp => {
-                html += `<div class="date-group-header">${grp}</div>`;
-                groups[grp].forEach(m => html += renderMatchCard(m));
+            let html = '';
+            orderedKeys.forEach((group) => {
+                html += `<div class="date-group-header">${group}</div>`;
+                groups[group].forEach((match) => html += renderMatchCard(match));
             });
             document.getElementById('matches-container').innerHTML = html || "<p style='color:#888; font-size:13px;'>No matches scheduled.</p>";
-
-            // Today's matches on home tab
             const todayStr = today.toISOString().split('T')[0];
-            const todayMatches = allMatches.filter(m => m.matchDate === todayStr || (!['Pending','FINISHED'].includes(m.status) && m.status));
+            const todayMatches = allMatches.filter((match) => match.matchDate === todayStr || (!['Pending','FINISHED'].includes(match.status) && match.status));
             let todayHtml = '';
             if(todayMatches.length > 0) {
                 todayHtml += `<h3 style="border-bottom:1px solid #333; padding-bottom:10px; display:flex; align-items:center;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; height:18px; margin-right:8px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg> Today's Matches</h3>`;
-                todayMatches.forEach(m => todayHtml += renderMatchCard(m));
+                sortMatches(todayMatches).forEach((match) => todayHtml += renderMatchCard(match));
             }
             document.getElementById('today-matches-home').innerHTML = todayHtml;
+            maybeOpenRequestedMatch();
+        };
+        const maybeOpenRequestedMatch = () => {
+            if(!pendingNotificationMatchId) return;
+            if(!allMatches.some((match) => match.id === pendingNotificationMatchId)) return;
+            const targetMatchId = pendingNotificationMatchId;
+            pendingNotificationMatchId = null;
+            if(window.location.search) history.replaceState({}, '', window.location.pathname);
+            window.openMatchCenter(targetMatchId);
+        };
+        onSnapshot(query(collection(db, "matches"), orderBy("timestamp", "desc")), snap => {
+            const nextMatches = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            const nextState = new Map();
+            nextMatches.forEach((match) => {
+                const prev = previousMatchState.get(match.id);
+                const currentState = {
+                    goalsA: match.stats?.A?.scorers?.length || 0,
+                    goalsB: match.stats?.B?.scorers?.length || 0,
+                    redsA: match.stats?.A?.reds?.length || 0,
+                    redsB: match.stats?.B?.reds?.length || 0
+                };
+                if(prev && isMatchFollowed(match.id) && localStorage.getItem('notif_goals') !== 'false') {
+                    if(currentState.goalsA > prev.goalsA) {
+                        (match.stats?.A?.scorers || []).slice(prev.goalsA).forEach((event) => {
+                            const notifyKey = `goal:${match.id}:A:${event.name}:${event.minute}:${event.assist || 'none'}`;
+                            if(seenNotificationKeys.has(notifyKey)) return;
+                            showBrowserNotification(`${match.teamA?.name} scored`, `${event.name}${event.assist && event.assist !== 'None' ? `, assisted by ${event.assist}` : ''} against ${match.teamB?.name}.`, `goal-${match.id}`);
+                            markNotified(notifyKey);
+                        });
+                    }
+                    if(currentState.goalsB > prev.goalsB) {
+                        (match.stats?.B?.scorers || []).slice(prev.goalsB).forEach((event) => {
+                            const notifyKey = `goal:${match.id}:B:${event.name}:${event.minute}:${event.assist || 'none'}`;
+                            if(seenNotificationKeys.has(notifyKey)) return;
+                            showBrowserNotification(`${match.teamB?.name} scored`, `${event.name}${event.assist && event.assist !== 'None' ? `, assisted by ${event.assist}` : ''} against ${match.teamA?.name}.`, `goal-${match.id}`);
+                            markNotified(notifyKey);
+                        });
+                    }
+                    if(currentState.redsA > prev.redsA) {
+                        (match.stats?.A?.reds || []).slice(prev.redsA).forEach((event) => {
+                            const player = typeof event === 'string' ? event : event.name;
+                            const minute = typeof event === 'string' ? '' : event.minute || '';
+                            const notifyKey = `red:${match.id}:A:${player}:${minute}`;
+                            if(seenNotificationKeys.has(notifyKey)) return;
+                            showBrowserNotification(`Red card for ${match.teamA?.name}`, `${player} was sent off${minute ? ` at ${minute}'` : ''}.`, `red-${match.id}`);
+                            markNotified(notifyKey);
+                        });
+                    }
+                    if(currentState.redsB > prev.redsB) {
+                        (match.stats?.B?.reds || []).slice(prev.redsB).forEach((event) => {
+                            const player = typeof event === 'string' ? event : event.name;
+                            const minute = typeof event === 'string' ? '' : event.minute || '';
+                            const notifyKey = `red:${match.id}:B:${player}:${minute}`;
+                            if(seenNotificationKeys.has(notifyKey)) return;
+                            showBrowserNotification(`Red card for ${match.teamB?.name}`, `${player} was sent off${minute ? ` at ${minute}'` : ''}.`, `red-${match.id}`);
+                            markNotified(notifyKey);
+                        });
+                    }
+                }
+                nextState.set(match.id, currentState);
+            });
+            previousMatchState = nextState;
+            allMatches = nextMatches;
+            if(activeTournamentId) {
+                recalculateTournamentStats(activeTournamentId);
+                let t = allTournaments.find(x => x.id === activeTournamentId);
+                if(t) buildTournamentBrackets(t);
+                renderTournamentMatches(activeTournamentId);
+            }
+            scheduleMatchReminders();
+            renderMatchLists();
         });
 
         // TABS & PROFILES
         window.switchMainTab = (id) => { 
-            document.querySelectorAll('#main-content .view-section').forEach(d => d.classList.remove('active')); 
-            document.querySelectorAll('#main-nav .tab').forEach(t => t.classList.remove('active')); 
+            activeMainTab = id;
+            document.querySelectorAll('#main-content .view-section').forEach((section) => section.classList.remove('active')); 
+            document.querySelectorAll('#main-nav .tab').forEach((tab) => tab.classList.remove('active')); 
+            document.querySelectorAll('.bottom-nav .nav-item').forEach((button) => button.classList.remove('active'));
             let target = document.getElementById(`tab-${id}`);
             if(target) target.classList.add('active'); 
-            let tBtn = document.querySelector(`#main-nav .tab[onclick*="('${id}'"]`);
-            if(tBtn) tBtn.classList.add('active');
+            document.querySelectorAll('#main-nav .tab').forEach((tab) => {
+                if(tab.getAttribute('onclick')?.includes(`'${id}'`)) tab.classList.add('active');
+            });
+            document.querySelectorAll('.bottom-nav .nav-item').forEach((button) => {
+                if(button.getAttribute('onclick')?.includes(`'${id}'`)) button.classList.add('active');
+            });
+            window.scrollTo(0, 0);
         };
 
-        window.switchTab = (id) => { 
-            switchMainTab(id); 
-            document.querySelectorAll('.bottom-nav .nav-item').forEach(b => b.classList.remove('active')); 
-            if(event && event.currentTarget) event.currentTarget.classList.add('active'); 
-        };
+        window.switchTab = (id) => window.switchMainTab(id);
 
         window.switchMcTab = (id, el) => { document.querySelectorAll('#match-center .mc-content .view-section').forEach(d => d.classList.remove('active')); document.querySelectorAll('#match-center .mc-tab').forEach(t => t.classList.remove('active')); document.getElementById(`mc-tab-${id}`).classList.add('active'); el.classList.add('active'); }
         
@@ -1203,22 +1554,7 @@
             let tMatches = allMatches.filter(m => m.tournamentId === tId);
             
             // Group and sort
-            const today = new Date(); today.setHours(0,0,0,0);
-            const sortedMatches = [...tMatches].sort((a,b) => {
-                let dA = a.matchDate ? new Date(a.matchDate+'T00:00:00') : new Date(0);
-                let dB = b.matchDate ? new Date(b.matchDate+'T00:00:00') : new Date(0);
-                let diffA = Math.abs(dA - today); let diffB = Math.abs(dB - today);
-                let liveA = !['Pending','FINISHED'].includes(a.status) ? 0 : 1;
-                let liveB = !['Pending','FINISHED'].includes(b.status) ? 0 : 1;
-                if(liveA !== liveB) return liveA - liveB;
-                if(diffA !== diffB) return diffA - diffB;
-                
-                let tA = a.timeInfo ? a.timeInfo.split(' ').pop() : '00:00';
-                let tB = b.timeInfo ? b.timeInfo.split(' ').pop() : '00:00';
-                let minA = tA.includes(':') ? parseInt(tA.split(':')[0])*60 + parseInt(tA.split(':')[1]) : 9999;
-                let minB = tB.includes(':') ? parseInt(tB.split(':')[0])*60 + parseInt(tB.split(':')[1]) : 9999;
-                return minA - minB;
-            });
+            const sortedMatches = sortMatches(tMatches);
 
             let groups = {};
             sortedMatches.forEach(m => {
@@ -1227,13 +1563,15 @@
                 groups[grp].push(m);
             });
 
-            const groupOrder = ['📅 Today','📅 Tomorrow'];
+            const svgCal = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+            const svgPast = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px; height:14px; vertical-align:-2px; margin-right:4px;"><polyline points="11 17 6 12 11 7"></polyline><polyline points="18 17 13 12 18 7"></polyline></svg>`;
+            const groupOrder = [svgCal+' Today', svgCal+' Tomorrow'];
             const allKeys = Object.keys(groups);
             const orderedKeys = [];
             groupOrder.forEach(k => { if(allKeys.includes(k)) orderedKeys.push(k); });
-            allKeys.filter(k => !groupOrder.includes(k) && k !== '⏪ Past' && k !== 'No Date Set').sort().forEach(k => orderedKeys.push(k));
+            allKeys.filter(k => !groupOrder.includes(k) && k !== svgPast+' Past' && k !== 'No Date Set').sort().forEach(k => orderedKeys.push(k));
             if(allKeys.includes('No Date Set')) orderedKeys.push('No Date Set');
-            if(allKeys.includes('⏪ Past')) orderedKeys.push('⏪ Past');
+            if(allKeys.includes(svgPast+' Past')) orderedKeys.push(svgPast+' Past');
 
             orderedKeys.forEach(grp => {
                 html += `<div class="date-group-header">${grp}</div>`;
@@ -1323,12 +1661,12 @@
             const t = allTeams.find(x => x.id === teamId); if(!t) return;
             document.getElementById('tp-logo').src = t.logo; document.getElementById('tp-name').innerText = t.name;
             let html = '<ul style="list-style:none; padding:0; margin:0;">';
-            t.roster.forEach(p => html += `<li style="padding:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; cursor:pointer;" onclick="openPlayerProfile('${p.name}', '${t.name}')"><span style="color:var(--primary); font-weight:bold; width:40px;">${p.pos}</span><img src="${p.image||t.logo}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:10px; background:#fff;"><span style="font-weight:bold; font-size:16px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span></li>`);
+            t.roster.forEach(p => html += `<li style="padding:12px; border-bottom:1px solid var(--border); display:flex; align-items:center; cursor:pointer;" onclick="openPlayerProfile('${p.name}', '${t.name}')"><span style="color:var(--primary); font-weight:bold; width:40px;">${p.pos}</span><img src="${p.image||t.logo}" style="width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:10px; background:#fff;"><span style="font-weight:bold; font-size:16px;">${p.name}${p.isCap?' <span class="cap-icon">C</span>':''}</span></li>`);
             html += '</ul>'; document.getElementById('tp-roster').innerHTML = html; document.getElementById('team-profile').style.display = 'block';
         }
 
         const getPlayerIcons = (name, side, m) => {
-            let icons = '';
+            let icons = [];
             let goals = m.stats?.[side]?.scorers?.filter(s => s.name === name).length || 0;
             let assists = m.stats?.[side]?.scorers?.filter(s => s.assist === name).length || 0;
             let yellows = m.stats?.[side]?.yellows?.filter(s => (typeof s==='string'?s:s.name) === name).length || 0;
@@ -1336,18 +1674,24 @@
             let subIn = m.subsEvents?.[side]?.find(s => s.in === name);
             let subOut = m.subsEvents?.[side]?.find(s => s.out === name);
 
-            for(let i=0;i<goals;i++) icons += '⚽';
-            for(let i=0;i<assists;i++) icons += '🤝';
-            for(let i=0;i<yellows;i++) icons += '🟨';
-            for(let i=0;i<reds;i++) icons += '🟥';
-            if(subIn) icons += ` <span style="color:var(--primary);">↑${subIn.minute}'</span>`;
-            if(subOut) icons += ` <span style="color:var(--red);">↓${subOut.minute}'</span>`;
-            return icons ? `<div class="pitch-icons">${icons}</div>` : '';
+            for(let i=0;i<goals;i++) icons.push(iconHtml('ball'));
+            for(let i=0;i<assists;i++) icons.push(iconHtml('boot'));
+            for(let i=0;i<yellows;i++) icons.push(iconHtml('yellow'));
+            for(let i=0;i<reds;i++) icons.push(iconHtml('red'));
+            if(subIn) icons.push(`<span class="event-arrow" style="color:var(--primary);">IN ${subIn.minute}'</span>`);
+            if(subOut) icons.push(`<span class="event-arrow" style="color:var(--red);">OUT ${subOut.minute}'</span>`);
+            return icons.length ? `<div class="pitch-icons">${icons.join('')}</div>` : '';
         }
 
         let mcListener = null; let chatListener = null;
         window.openMatchCenter = (matchId) => {
-            document.getElementById('main-header').style.display='none'; document.getElementById('main-nav').style.display='none'; document.getElementById('main-content').style.display='none'; document.getElementById('match-center').style.display='block';
+            openingContext = document.getElementById('tournament-center').style.display === 'block' ? 'tournament' : 'main';
+            document.getElementById('main-header').style.display='none';
+            document.getElementById('main-nav').style.display='none';
+            document.getElementById('main-content').style.display='none';
+            document.getElementById('bottom-nav').style.display='none';
+            document.getElementById('tournament-center').style.display='none';
+            document.getElementById('match-center').style.display='block';
             if(mcListener) mcListener();
             if(chatListener) chatListener();
             
@@ -1365,6 +1709,8 @@
             mcListener = onSnapshot(doc(db, "matches", matchId), (docSnap) => {
                 if(!docSnap.exists()) return;
                 const m = docSnap.data(); m.id = docSnap.id; window.currentMatch = m;
+                m.lineupA = normalizeLineup(m.lineupA);
+                m.lineupB = normalizeLineup(m.lineupB);
                 
                 let rA = m.stats?.A?.reds?.length || 0; let rB = m.stats?.B?.reds?.length || 0;
                 let rAHtml = Array(rA).fill(`<div class="red-card-icon"></div>`).join('');
@@ -1385,7 +1731,8 @@
                     document.getElementById('mc-export-fixture').style.display = 'none';
                     if(m.status === 'PEN' || (m.status==='FINISHED' && (m.penalties?.A > 0 || m.penalties?.B > 0))) { document.getElementById('mc-pens').innerText = `(Pen: ${m.penalties?.A||0} - ${m.penalties?.B||0})`; document.getElementById('mc-pens').style.display = 'block'; } else { document.getElementById('mc-pens').style.display = 'none'; }
                 }
-                document.getElementById('mc-admin-buttons').style.display = isAdmin ? 'flex' : 'none';
+                document.getElementById('mc-admin-buttons').style.display = canManageMatch(m) ? 'flex' : 'none';
+                updateMatchFollowButton();
 
                 const buildStat = (lbl, vA, vB, pct) => { let tot = vA+vB||1; return `<div class="stat-bar-container"><div class="stat-labels"><span>${vA}${pct?'%':''}</span><span style="color:#aaa;">${lbl}</span><span>${vB}${pct?'%':''}</span></div><div class="bar-bg"><div class="bar-fill-a" style="width:${(vA/tot)*100}%"></div><div class="bar-fill-b" style="width:${(vB/tot)*100}%"></div></div></div>`; }
                 document.getElementById('mc-stats-container').innerHTML = buildStat("Possession", m.stats?.A?.possession||50, m.stats?.B?.possession||50, true) + buildStat("Shots", m.stats?.A?.shots||0, m.stats?.B?.shots||0, false) + buildStat("Shots on Target", m.stats?.A?.shotsOnTarget||0, m.stats?.B?.shotsOnTarget||0, false) + buildStat("Fouls", m.stats?.A?.fouls||0, m.stats?.B?.fouls||0, false) + buildStat("Yellow Cards", m.stats?.A?.yellows?.length||0, m.stats?.B?.yellows?.length||0, false) + buildStat("Red Cards", m.stats?.A?.reds?.length||0, m.stats?.B?.reds?.length||0, false) + buildStat("Corners", m.stats?.A?.corners||0, m.stats?.B?.corners||0, false);
@@ -1404,6 +1751,9 @@
                 }
 
                 const buildPitch = (lObj, tName, logo, side, teamId) => {
+                    if(!lObj?.confirmed || !Array.isArray(lObj.starters) || lObj.starters.length === 0) {
+                        return `<div class="empty-lineup">Lineup not confirmed yet.</div>`;
+                    }
                     let teamData = allTeams.find(t => t.id === teamId);
                     let layout = categorize(lObj.starters ||[]);
                     const getRow = (arr) => {
@@ -1415,11 +1765,10 @@
                             let modifier = r?.modifier || 0;
                             let avg = (r && (r.votes>0 || modifier !== 0)) ? Math.max(1.0, Math.min(10.0, baseAvg + modifier)).toFixed(1) : '-';
                             let pImg = teamData?.roster?.find(x => x.name === p.name)?.image || logo;
-                            rowHtml += `<div class="pitch-player" onclick="openPlayerProfile('${p.name}', '${tName}')"><div class="pitch-rating">${avg}</div><img src="${pImg}" class="pitch-logo" style="${pImg!==logo?'object-fit:cover; padding:0; border:2px solid #fff;':''}"><div class="pitch-name">${p.name}${p.isCap?' ©️':''}</div>${getPlayerIcons(p.name, side, m)}</div>`;
+                            rowHtml += `<div class="pitch-player" onclick="openPlayerProfile('${p.name}', '${tName}')"><div class="pitch-rating">${avg}</div><img src="${pImg}" class="pitch-logo" style="${pImg!==logo?'object-fit:cover; padding:0; border:2px solid #fff;':''}"><div class="pitch-name">${p.name}${p.isCap?' <span class="cap-icon">C</span>':''}</div>${getPlayerIcons(p.name, side, m)}</div>`;
                         });
                         return rowHtml + `</div>`;
                     }
-                    // Formation: FWD on top, down to GK
                     let formText = lObj.formation ? `<div style="text-align:center; color:var(--primary); font-weight:bold; margin-bottom:10px;">Formation: ${lObj.formation}</div>` : '';
                     let html = `${formText}<div class="pitch-container" id="pitch-export-${side}">${getRow(layout.FWD)}${getRow(layout.MID)}${getRow(layout.DEF)}${getRow(layout.GK)}</div>`;
                     
@@ -1430,7 +1779,7 @@
                         let baseAvg = r && r.votes>0 ? (r.sum/r.votes) : 6.0;
                         let modifier = r?.modifier || 0;
                         let avg = (r && (r.votes>0 || modifier !== 0)) ? Math.max(1.0, Math.min(10.0, baseAvg + modifier)).toFixed(1) : '-';
-                        html += `<div class="player-row" onclick="openPlayerProfile('${p.name}', '${tName}')"><span style="font-weight:bold; font-size:14px;">${p.pos} <span style="color:#fff; margin-left:10px;">${p.name}${p.isCap?' <span class="cap-icon">©️</span>':''}</span>${getPlayerIcons(p.name, side, m)}</span><span class="rating-badge">★ ${avg}</span></div>`; 
+                        html += `<div class="player-row" onclick="openPlayerProfile('${p.name}', '${tName}')"><span style="font-weight:bold; font-size:14px;">${p.pos} <span style="color:#fff; margin-left:10px;">${p.name}${p.isCap?' <span class="cap-icon">C</span>':''}</span>${getPlayerIcons(p.name, side, m)}</span><span class="rating-badge">★ ${avg}</span></div>`; 
                     });
                     return html;
                 }
@@ -1441,12 +1790,12 @@
                 // Match Timeline
                 let timeline =[];
                 const addEv = (arr, side, icon, fTxt) => { if(arr) arr.forEach(e => { let n = typeof e==='string'?e:e.name; let min = typeof e==='string'?'?':(e.minute||'?'); timeline.push({min:parseInt(min)||999, rMin:min, text:fTxt(n, e.assist), icon, side}); }); };
-                addEv(m.stats?.A?.scorers, 'A', '⚽', (n,a)=>`<strong>${n}</strong> (Goal)${a&&a!=='None'?`<br><span style="font-size:12px; color:#aaa;">Assist: ${a}</span>`:''}`); 
-                addEv(m.stats?.B?.scorers, 'B', '⚽', (n,a)=>`<strong>${n}</strong> (Goal)${a&&a!=='None'?`<br><span style="font-size:12px; color:#aaa;">Assist: ${a}</span>`:''}`);
-                addEv(m.stats?.A?.yellows, 'A', '🟨', n=>`<strong>${n}</strong> (Yellow)`); addEv(m.stats?.B?.yellows, 'B', '🟨', n=>`<strong>${n}</strong> (Yellow)`);
-                addEv(m.stats?.A?.reds, 'A', '🟥', n=>`<strong>${n}</strong> (Red)`); addEv(m.stats?.B?.reds, 'B', '🟥', n=>`<strong>${n}</strong> (Red)`);
-                if(m.subsEvents?.A) m.subsEvents.A.forEach(e => timeline.push({min:parseInt(e.minute)||999, rMin:e.minute||'?', text:`<strong style="color:var(--green)">↑ ${e.in}</strong> <br><strong style="color:var(--red)">↓ ${e.out}</strong>`, icon:'🔄', side:'A'}));
-                if(m.subsEvents?.B) m.subsEvents.B.forEach(e => timeline.push({min:parseInt(e.minute)||999, rMin:e.minute||'?', text:`<strong style="color:var(--green)">↑ ${e.in}</strong> <br><strong style="color:var(--red)">↓ ${e.out}</strong>`, icon:'🔄', side:'B'}));
+                addEv(m.stats?.A?.scorers, 'A', iconHtml('ball'), (n,a)=>`<strong>${n}</strong> (Goal)${a&&a!=='None'?`<br><span style="font-size:12px; color:#aaa;">Assist: ${a}</span>`:''}`); 
+                addEv(m.stats?.B?.scorers, 'B', iconHtml('ball'), (n,a)=>`<strong>${n}</strong> (Goal)${a&&a!=='None'?`<br><span style="font-size:12px; color:#aaa;">Assist: ${a}</span>`:''}`);
+                addEv(m.stats?.A?.yellows, 'A', iconHtml('yellow'), n=>`<strong>${n}</strong> (Yellow)`); addEv(m.stats?.B?.yellows, 'B', iconHtml('yellow'), n=>`<strong>${n}</strong> (Yellow)`);
+                addEv(m.stats?.A?.reds, 'A', iconHtml('red'), n=>`<strong>${n}</strong> (Red)`); addEv(m.stats?.B?.reds, 'B', iconHtml('red'), n=>`<strong>${n}</strong> (Red)`);
+                if(m.subsEvents?.A) m.subsEvents.A.forEach(e => timeline.push({min:parseInt(e.minute)||999, rMin:e.minute||'?', text:`<strong style="color:var(--green)">IN ${e.in}</strong> <br><strong style="color:var(--red)">OUT ${e.out}</strong>`, icon:`<span class="event-arrow" style="color:var(--primary);">IN</span>`, side:'A'}));
+                if(m.subsEvents?.B) m.subsEvents.B.forEach(e => timeline.push({min:parseInt(e.minute)||999, rMin:e.minute||'?', text:`<strong style="color:var(--green)">IN ${e.in}</strong> <br><strong style="color:var(--red)">OUT ${e.out}</strong>`, icon:`<span class="event-arrow" style="color:var(--primary);">IN</span>`, side:'B'}));
                 timeline.sort((a,b) => a.min - b.min);
                 let tHTML = ''; timeline.forEach(t => { let align = t.side==='B'?'text-align:right; flex-direction:row-reverse;':''; tHTML += `<div style="padding:10px; border-bottom:1px solid #333; display:flex; gap:10px; align-items:center; ${align}"><span>${t.icon}</span><span style="color:var(--primary); font-weight:bold; width:30px;">${t.rMin}'</span><span style="flex:1; font-size:14px;">${t.text}</span></div>`; });
                 document.getElementById('mc-events-list').innerHTML = tHTML || "<p style='color:#888; font-style:italic;'>No events yet.</p>";
@@ -1454,10 +1803,23 @@
                 if(m.commentary && m.commentary.length > 0) { let cHTML = '';[...m.commentary].reverse().forEach(c => cHTML += `<div class="comm-item"><strong style="color:var(--primary);">${c.minute}'</strong> - ${c.text}</div>`); document.getElementById('mc-commentary-list').innerHTML = cHTML; } 
                 else { document.getElementById('mc-commentary-list').innerHTML = "<p style='color:#666; font-style:italic;'>No updates yet.</p>"; }
 
-                if(m.motm) { document.getElementById('mc-motm-banner').innerText = "⭐ Man of the Match: " + m.motm; document.getElementById('mc-motm-banner').style.display='block'; } else { document.getElementById('mc-motm-banner').style.display='none'; }
+                if(m.motm) { document.getElementById('mc-motm-banner').innerText = "Man of the Match: " + m.motm; document.getElementById('mc-motm-banner').style.display='block'; } else { document.getElementById('mc-motm-banner').style.display='none'; }
             });
         }
-        window.closeMatchCenter = () => { if(mcListener) mcListener(); if(chatListener) chatListener(); window.currentMatch = null; document.getElementById('match-center').style.display='none'; document.getElementById('main-header').style.display='flex'; document.getElementById('main-nav').style.display='flex'; document.getElementById('main-content').style.display='block'; }
+        window.closeMatchCenter = () => {
+            if(mcListener) mcListener();
+            if(chatListener) chatListener();
+            window.currentMatch = null;
+            document.getElementById('match-center').style.display='none';
+            if(openingContext === 'tournament' && activeTournamentId) {
+                document.getElementById('tournament-center').style.display='block';
+                return;
+            }
+            document.getElementById('main-header').style.display='flex';
+            document.getElementById('main-nav').style.display='flex';
+            document.getElementById('bottom-nav').style.display='flex';
+            document.getElementById('main-content').style.display='block';
+        }
         
         window.sendSuperchat = async () => {
             let name = document.getElementById('chat-name').value || 'Fan';
@@ -1467,14 +1829,17 @@
             document.getElementById('chat-msg').value = '';
         }
 
-        window.launchBroadcast = () => { window.location.href = `admin_tracker.html?id=${window.currentMatch.id}`; }
+        window.launchBroadcast = () => {
+            if(!window.currentMatch || !ensureMatchAccess(window.currentMatch)) return;
+            window.location.href = `admin_tracker.html?id=${window.currentMatch.id}`;
+        }
 
         window.exportFixtureImage = () => {
             let m = window.currentMatch;
             document.getElementById('gfx-stage').innerText = m.tournamentName + " " + m.tournamentPhase;
             document.getElementById('gfx-team1').innerText = m.teamA.name; document.getElementById('gfx-logo1').src = m.teamA.logo;
             document.getElementById('gfx-team2').innerText = m.teamB.name; document.getElementById('gfx-logo2').src = m.teamB.logo;
-            document.getElementById('gfx-time').innerText = "🕒 " + m.timeInfo;
+            document.getElementById('gfx-time').innerText = m.timeInfo;
             const area = document.getElementById('fixture-graphic-area').parentElement; 
             area.style.left = '0'; area.style.zIndex = '-100'; area.style.position = 'fixed';
             setTimeout(() => { 
@@ -1491,7 +1856,9 @@
         window.downloadLineupImage = () => {
             let side = document.getElementById('lineups-team-a').style.display !== 'none' ? 'A' : 'B';
             let tName = side === 'A' ? window.currentMatch.teamA.name : window.currentMatch.teamB.name;
-            html2canvas(document.getElementById(`pitch-export-${side}`), { scale: 2, useCORS: true, backgroundColor: '#0b6623' }).then(c => { 
+            const pitch = document.getElementById(`pitch-export-${side}`);
+            if(!pitch) return alert("Confirm this lineup before exporting the pitch image.");
+            html2canvas(pitch, { scale: 2, useCORS: true, backgroundColor: '#0b6623' }).then(c => { 
                 const l = document.createElement('a'); 
                 l.download = `${tName}_Lineup.png`; 
                 l.href = c.toDataURL(); 
@@ -1500,8 +1867,12 @@
         }
 
         window.printBracket = () => {
-            document.getElementById('tab-bracket').classList.add('print-active');
-            setTimeout(() => { window.print(); document.getElementById('tab-bracket').classList.remove('print-active'); }, 200);
+            const tournamentCenter = document.getElementById('tournament-center');
+            tournamentCenter.classList.add('print-active');
+            setTimeout(() => {
+                window.print();
+                tournamentCenter.classList.remove('print-active');
+            }, 200);
         }
     </script>
 </body>

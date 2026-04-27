@@ -1,0 +1,110 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function hasUserDoc() {
+      return signedIn() && exists(userPath());
+    }
+
+    function userData() {
+      return get(userPath()).data;
+    }
+
+    function role() {
+      return hasUserDoc() ? userData().role : null;
+    }
+
+    function isSuperAdmin() {
+      return role() == 'super_admin';
+    }
+
+    function isOrganizer() {
+      return role() == 'organizer';
+    }
+
+    function organizerTournamentId() {
+      return hasUserDoc() ? userData().tournamentId : null;
+    }
+
+    function managesTournament(tournamentId) {
+      return isSuperAdmin() || (isOrganizer() && organizerTournamentId() == tournamentId);
+    }
+
+    match /users/{uid} {
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'uid',
+          'email',
+          'name',
+          'requestedTournament',
+          'role',
+          'timestamp'
+        ])
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == 'pending';
+
+      allow read: if signedIn() && (request.auth.uid == uid || isSuperAdmin());
+
+      allow update: if isSuperAdmin();
+
+      allow delete: if isSuperAdmin()
+        || (signedIn() && request.auth.uid == uid && role() == 'pending');
+    }
+
+    match /tournaments/{tournamentId} {
+      allow read: if true;
+      allow create: if isSuperAdmin();
+      allow update, delete: if managesTournament(tournamentId);
+    }
+
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create: if managesTournament(request.resource.data.tournamentId);
+      allow update: if managesTournament(resource.data.tournamentId)
+        && managesTournament(request.resource.data.tournamentId);
+      allow delete: if managesTournament(resource.data.tournamentId);
+    }
+
+    match /matches/{matchId} {
+      allow read: if true;
+      allow create: if managesTournament(request.resource.data.tournamentId);
+      allow update, delete: if managesTournament(resource.data.tournamentId);
+
+      match /chat/{messageId} {
+        allow read: if true;
+        allow create: if request.resource.data.keys().hasOnly(['name', 'text', 'timestamp'])
+          && request.resource.data.name is string
+          && request.resource.data.text is string;
+        allow update, delete: if false;
+      }
+    }
+
+    match /announcements/{announcementId} {
+      allow read: if true;
+
+      allow create, delete: if isSuperAdmin() || isOrganizer();
+
+      allow update: if isSuperAdmin()
+        || isOrganizer()
+        || request.resource.data.diff(resource.data).changedKeys().hasOnly(['likes', 'dislikes', 'commentCount']);
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.resource.data.keys().hasOnly(['name', 'text', 'timestamp'])
+          && request.resource.data.name is string
+          && request.resource.data.text is string;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
