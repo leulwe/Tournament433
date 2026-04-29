@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squad Face Cropper (Auto + Manual)</title>
+    <title>Squad Face Cropper (Multiple Photos)</title>
     
     <!-- Load face-api.js from CDN -->
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
@@ -58,30 +58,37 @@
             color: #4B5563;
         }
 
-        /* Image and Manual Crop Container */
+        /* Images and Manual Crop Container */
         #interactive-area {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-bottom: 20px;
         }
-        #image-container {
+        #source-images-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 30px; /* Space between multiple images */
+            align-items: center;
+            width: 100%;
+        }
+        .image-container {
             position: relative;
-            display: none;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             border-radius: 10px;
             overflow: hidden;
             cursor: crosshair;
             user-select: none;
             touch-action: none; /* Prevent scrolling while cropping on mobile */
+            display: inline-block;
         }
-        #source-preview {
+        .source-preview {
             display: block;
             max-width: 100%;
             max-height: 500px;
             pointer-events: none; /* Let container handle mouse events */
         }
-        #selection-box {
+        .selection-box {
             position: absolute;
             border: 2px dashed #EF4444;
             background-color: rgba(239, 68, 68, 0.2);
@@ -96,6 +103,7 @@
             padding: 10px 20px;
             border-radius: 8px;
             margin-top: 15px;
+            margin-bottom: 20px;
             font-size: 0.95rem;
             font-weight: 500;
         }
@@ -153,41 +161,35 @@
 
     <div class="header">
         <h1>📸 Squad Face Cropper</h1>
-        <p>AI automatically crops faces. Missed someone? <b>Click & drag on the photo to manually crop!</b></p>
+        <p>Upload multiple photos! AI will extract all faces. <b>Click & drag on any photo to manually crop!</b></p>
     </div>
 
     <div class="upload-btn-wrapper">
         <button class="btn" id="uploadBtn" disabled>Loading AI Models...</button>
-        <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/webp" disabled />
+        <!-- ADDED 'multiple' attribute here -->
+        <input type="file" id="imageUpload" accept="image/png, image/jpeg, image/webp" multiple disabled />
     </div>
 
     <div id="status">Please wait while the AI models load...</div>
 
-    <div id="interactive-area">
-        <div id="image-container">
-            <!-- draggable="false" stops browsers from trying to drag the image file -->
-            <img id="source-preview" alt="Uploaded Photo" draggable="false" />
-            <div id="selection-box"></div>
-        </div>
-        <div id="manual-hint">💡 Tip: If the AI missed someone, just click and drag on the photo above to crop them!</div>
-    </div>
-    
     <div id="gallery"></div>
 
+    <div id="interactive-area">
+        <div id="manual-hint">💡 Tip: If the AI missed someone, just click and drag on any of the photos below to crop them!</div>
+        <div id="source-images-wrapper"></div>
+    </div>
+    
     <script>
         // DOM Elements
         const imageUpload = document.getElementById('imageUpload');
         const uploadBtn = document.getElementById('uploadBtn');
         const status = document.getElementById('status');
         const gallery = document.getElementById('gallery');
-        const imageContainer = document.getElementById('image-container');
-        const sourcePreview = document.getElementById('source-preview');
-        const selectionBox = document.getElementById('selection-box');
+        const sourceImagesWrapper = document.getElementById('source-images-wrapper');
         const manualHint = document.getElementById('manual-hint');
 
         const MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
 
-        let currentImageObj = null; // Stores the raw Image object for cropping
         let autoCropCount = 0;
         let manualCropCount = 0;
 
@@ -195,12 +197,12 @@
         async function loadModels() {
             try {
                 await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
-                status.innerText = "✅ AI Models Loaded! Ready to process photos.";
+                status.innerText = "✅ AI Models Loaded! Select one or more photos.";
                 status.style.color = "#10B981";
                 
                 imageUpload.disabled = false;
                 uploadBtn.disabled = false;
-                uploadBtn.innerText = "Choose Photo";
+                uploadBtn.innerText = "Choose Photos";
             } catch (err) {
                 status.innerText = "❌ Failed to load AI models. Please check your internet connection.";
                 status.style.color = "#EF4444";
@@ -208,69 +210,99 @@
         }
         window.onload = loadModels;
 
-        // --- 2. Handle Image Upload & Auto Crop ---
+        // --- 2. Handle Multiple Image Uploads & Auto Crop ---
         imageUpload.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
 
             // Reset UI
             gallery.innerHTML = '';
+            sourceImagesWrapper.innerHTML = '';
             autoCropCount = 0;
             manualCropCount = 0;
-            imageContainer.style.display = 'none';
             manualHint.style.display = 'none';
-            status.innerText = "🔍 Scanning image for faces... Please wait.";
+
+            status.innerText = `🔍 Scanning ${files.length} image(s) for faces... Please wait.`;
             status.style.color = "#4F46E5";
 
-            const imgUrl = URL.createObjectURL(file);
-            sourcePreview.src = imgUrl;
+            let totalFacesFound = 0;
 
-            currentImageObj = new Image();
-            currentImageObj.src = imgUrl;
-            
-            currentImageObj.onload = async () => {
-                imageContainer.style.display = 'inline-block';
-                manualHint.style.display = 'block';
+            // Process every uploaded image sequentially
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const imgUrl = URL.createObjectURL(file);
 
-                // Detect faces (minConfidence 0.4 handles slightly blurry faces well)
-                const detections = await faceapi.detectAllFaces(currentImageObj, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }));
+                status.innerText = `🔍 Processing image ${i + 1} of ${files.length}...`;
 
-                if (detections.length === 0) {
-                    status.innerText = "⚠️ No faces found by AI. You can draw boxes manually below!";
-                    status.style.color = "#F59E0B";
-                    return;
-                }
+                // Create Container for this specific image
+                const container = document.createElement('div');
+                container.className = 'image-container';
 
-                status.innerText = `🎉 AI found ${detections.length} face(s)!`;
-                status.style.color = "#10B981";
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.className = 'source-preview';
+                img.draggable = false;
 
-                // Auto-crop each detected face
-                detections.forEach((detection) => {
-                    const box = detection.box;
-                    
-                    // Add 25% padding around the detected face
-                    const padX = box.width * 0.25;
-                    const padY = box.height * 0.25;
-                    
-                    const x = Math.max(0, box.x - padX);
-                    const y = Math.max(0, box.y - padY);
-                    const width = Math.min(currentImageObj.width - x, box.width + padX * 2);
-                    const height = Math.min(currentImageObj.height - y, box.height + padY * 2);
+                const selBox = document.createElement('div');
+                selBox.className = 'selection-box';
 
-                    autoCropCount++;
-                    createCropCard(x, y, width, height, `AI Crop ${autoCropCount}`);
+                container.appendChild(img);
+                container.appendChild(selBox);
+                sourceImagesWrapper.appendChild(container);
+
+                // Attach manual crop events specific to this container
+                container.addEventListener('mousedown', handleStart);
+                container.addEventListener('touchstart', handleStart, {passive: false});
+
+                // Wait for the image to visually load before running AI
+                await new Promise((resolve) => {
+                    img.onload = async () => {
+                        const detections = await faceapi.detectAllFaces(img, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.4 }));
+                        totalFacesFound += detections.length;
+
+                        // Auto-crop each detected face
+                        detections.forEach((detection) => {
+                            const box = detection.box;
+                            
+                            const padX = box.width * 0.25;
+                            const padY = box.height * 0.25;
+                            
+                            const x = Math.max(0, box.x - padX);
+                            const y = Math.max(0, box.y - padY);
+                            // Ensure we don't crop outside image boundaries
+                            const width = Math.min(img.naturalWidth - x, box.width + padX * 2);
+                            const height = Math.min(img.naturalHeight - y, box.height + padY * 2);
+
+                            autoCropCount++;
+                            createCropCard(x, y, width, height, `AI Crop ${autoCropCount}`, img);
+                        });
+                        resolve();
+                    };
                 });
-            };
+            }
+
+            // Finished scanning all images
+            manualHint.style.display = 'block';
+
+            if (totalFacesFound === 0) {
+                status.innerText = "⚠️ No faces found by AI. You can draw boxes manually below!";
+                status.style.color = "#F59E0B";
+            } else {
+                status.innerText = `🎉 AI found ${totalFacesFound} face(s) across ${files.length} photo(s)!`;
+                status.style.color = "#10B981";
+            }
         });
 
-        // --- 3. Manual Cropping Logic (Click & Drag) ---
+        // --- 3. Manual Cropping Logic (Click & Drag for multiple images) ---
         let isDrawing = false;
         let startX = 0;
         let startY = 0;
+        let activeContainer = null;
+        let activeImg = null;
+        let activeSelectionBox = null;
 
-        // Utility to get normalized coordinates for both Mouse and Touch
-        function getPointerPos(e) {
-            const rect = imageContainer.getBoundingClientRect();
+        function getPointerPos(e, container) {
+            const rect = container.getBoundingClientRect();
             let clientX = e.clientX;
             let clientY = e.clientY;
             
@@ -288,86 +320,89 @@
         }
 
         function handleStart(e) {
-            if (!currentImageObj) return;
             isDrawing = true;
-            const pos = getPointerPos(e);
+            activeContainer = e.currentTarget;
+            activeImg = activeContainer.querySelector('.source-preview');
+            activeSelectionBox = activeContainer.querySelector('.selection-box');
+
+            const pos = getPointerPos(e, activeContainer);
             startX = pos.x;
             startY = pos.y;
             
-            selectionBox.style.left = startX + 'px';
-            selectionBox.style.top = startY + 'px';
-            selectionBox.style.width = '0px';
-            selectionBox.style.height = '0px';
-            selectionBox.style.display = 'block';
+            activeSelectionBox.style.left = startX + 'px';
+            activeSelectionBox.style.top = startY + 'px';
+            activeSelectionBox.style.width = '0px';
+            activeSelectionBox.style.height = '0px';
+            activeSelectionBox.style.display = 'block';
         }
 
         function handleMove(e) {
-            if (!isDrawing) return;
-            e.preventDefault(); // Stop mobile scrolling while drawing
-            const pos = getPointerPos(e);
+            if (!isDrawing || !activeContainer) return;
+            if (e.cancelable) e.preventDefault(); // Stop mobile scrolling while drawing
+
+            const pos = getPointerPos(e, activeContainer);
             
-            // Calculate Box (handles dragging backwards too)
             const left = Math.min(startX, pos.x);
             const top = Math.min(startY, pos.y);
             const width = Math.abs(pos.x - startX);
             const height = Math.abs(pos.y - startY);
 
-            selectionBox.style.left = left + 'px';
-            selectionBox.style.top = top + 'px';
-            selectionBox.style.width = width + 'px';
-            selectionBox.style.height = height + 'px';
+            activeSelectionBox.style.left = left + 'px';
+            activeSelectionBox.style.top = top + 'px';
+            activeSelectionBox.style.width = width + 'px';
+            activeSelectionBox.style.height = height + 'px';
         }
 
         function handleEnd(e) {
-            if (!isDrawing) return;
+            if (!isDrawing || !activeContainer) return;
             isDrawing = false;
-            selectionBox.style.display = 'none';
+            activeSelectionBox.style.display = 'none';
             
-            const displayWidth = parseFloat(selectionBox.style.width);
-            const displayHeight = parseFloat(selectionBox.style.height);
-            const displayLeft = parseFloat(selectionBox.style.left);
-            const displayTop = parseFloat(selectionBox.style.top);
+            const displayWidth = parseFloat(activeSelectionBox.style.width);
+            const displayHeight = parseFloat(activeSelectionBox.style.height);
+            const displayLeft = parseFloat(activeSelectionBox.style.left);
+            const displayTop = parseFloat(activeSelectionBox.style.top);
 
-            // Minimum crop size to prevent accidental clicks
             if (displayWidth > 20 && displayHeight > 20) {
-                
-                // Calculate scale (Preview size vs Actual original image size)
-                const scaleX = currentImageObj.width / sourcePreview.width;
-                const scaleY = currentImageObj.height / sourcePreview.height;
+                // scale = Real Image Dimensions / Preview Container Dimensions
+                const scaleX = activeImg.naturalWidth / activeImg.width;
+                const scaleY = activeImg.naturalHeight / activeImg.height;
 
-                // Map CSS coordinates to Real Image coordinates
                 const realX = displayLeft * scaleX;
                 const realY = displayTop * scaleY;
                 const realW = displayWidth * scaleX;
                 const realH = displayHeight * scaleY;
 
                 manualCropCount++;
-                createCropCard(realX, realY, realW, realH, `Manual Crop ${manualCropCount}`);
+                createCropCard(realX, realY, realW, realH, `Manual Crop ${manualCropCount}`, activeImg);
             }
+
+            // Clear active tracking
+            activeContainer = null;
+            activeImg = null;
+            activeSelectionBox = null;
         }
 
-        // Attach Mouse Events
-        imageContainer.addEventListener('mousedown', handleStart);
+        // Attach Mouse Events globally for Move/End
         window.addEventListener('mousemove', handleMove);
         window.addEventListener('mouseup', handleEnd);
 
-        // Attach Touch Events (Mobile)
-        imageContainer.addEventListener('touchstart', handleStart, {passive: false});
+        // Attach Touch Events (Mobile) globally for Move/End
         window.addEventListener('touchmove', handleMove, {passive: false});
         window.addEventListener('touchend', handleEnd);
 
 
         // --- 4. Reusable Function to Build the Crop UI Card ---
-        function createCropCard(x, y, width, height, titleText) {
+        function createCropCard(x, y, width, height, titleText, sourceImg) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
 
             canvas.width = width;
             canvas.height = height;
 
-            // Draw cropped image onto canvas
+            // Draw cropped image onto canvas using the specific source image
             context.drawImage(
-                currentImageObj,
+                sourceImg,
                 x, y, width, height, // Source dimensions
                 0, 0, width, height  // Destination dimensions
             );
